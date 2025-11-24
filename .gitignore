@@ -1,4 +1,50 @@
-target
-resources
-src/test
+# Directory for holding static files (video, image, song, etc.)
 ngelmak-directory
+
+# Ignore target directory (compilation output)
+target/
+
+# Ignore IDE-specific files
+.vscode/
+*.iml
+
+# Ignore build files
+*.class
+*.jar
+*.war
+
+# Ignore dependency files
+*.log
+*.zip
+*.tar.gz
+*.tar
+*.tgz
+*.7z
+
+# Ignore configuration files
+application.properties
+application.yml
+*.h2.db
+
+# Ignore local environment settings
+.settings/
+.idea/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore coverage reports
+coverage/
+*.cov
+*.exec
+
+# Ignore other IDE files (if applicable)
+*.sublime-workspace
+*.sublime-project
+
+# Ignore Maven and Gradle caches
+.mvn/
+.gradle/
+.gradle/
+build/

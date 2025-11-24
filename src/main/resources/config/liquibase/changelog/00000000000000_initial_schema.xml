@@ -1,0 +1,32 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    
+    <changeSet id="202511021704-1" author="ngelmak">
+        <loadData
+            file="config/liquibase/fake-data/account_fake.csv"
+            separator=";"
+            tableName="nk_account">
+        </loadData>
+    </changeSet>
+    
+    <changeSet id="202511021704-2" author="ngelmak">
+        <loadData
+            file="config/liquibase/fake-data/post_fake.csv"
+            separator=";"
+            tableName="nk_post">
+        </loadData>
+    </changeSet>
+    
+    <changeSet id="202511021704-4" author="ngelmak">
+        <loadData
+            file="config/liquibase/fake-data/comment_fake.csv"
+            separator=";"
+            tableName="nk_comment">
+        </loadData>
+    </changeSet>
+
+</databaseChangeLog>
