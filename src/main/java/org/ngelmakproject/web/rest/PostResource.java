@@ -1,0 +1,228 @@
+package org.ngelmakproject.web.rest;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import org.ngelmakproject.domain.NkAccount;
+import org.ngelmakproject.domain.NkFile;
+import org.ngelmakproject.domain.NkPost;
+import org.ngelmakproject.repository.PostRepository;
+import org.ngelmakproject.service.PostService;
+import org.ngelmakproject.service.dto.PageDTO;
+import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
+import org.ngelmakproject.web.rest.util.ResponseUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springdoc.api.annotations.ParameterObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.validation.constraints.NotNull;
+import tech.jhipster.web.util.HeaderUtil;
+
+/**
+ * REST controller for managing {@link org.ngelmakproject.domain.NkPost}.
+ */
+@RestController
+@RequestMapping("/truthline-ingres/posts")
+public class PostResource {
+
+    private static final Logger log = LoggerFactory.getLogger(PostResource.class);
+
+    private static final String ENTITY_NAME = "post";
+
+    @Value("${ngelmak.clientApp.name}")
+    private String applicationName;
+
+    private final PostService postService;
+
+    private final PostRepository postRepository;
+
+    public PostResource(PostService postService, PostRepository postRepository) {
+        this.postService = postService;
+        this.postRepository = postRepository;
+    }
+
+    /**
+     * {@code POST  /posts} : Create a new post.
+     *
+     * @param post the post to create.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new post, or with status {@code 400 (Bad Request)} if the
+     *         post has already an ID.
+     * @throws URISyntaxException if the Location URI syntax is incorrect.
+     */
+    @PostMapping("")
+    public ResponseEntity<NkPost> createPost(@RequestPart NkPost post, @RequestPart List<NkFile> attachments,
+            @RequestPart(required = false) List<MultipartFile> medias,
+            @RequestPart(required = false) List<MultipartFile> covers)
+            throws URISyntaxException {
+        log.debug("REST request to save NkPost : {}", post);
+        if (post.getId() != null) {
+            throw new BadRequestAlertException("A new post cannot already have an ID", ENTITY_NAME, "idexists");
+        }
+        post = postService.save(post, medias, covers);
+        return ResponseEntity.created(new URI("/truthline-ingres/posts/" + post.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME,
+                        post.getId().toString()))
+                .body(post);
+    }
+
+    /**
+     * {@code PUT  /posts/:id} : Updates an existing post.
+     *
+     * @param id   the id of the post to save.
+     * @param post the post to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated post,
+     *         or with status {@code 400 (Bad Request)} if the post is not valid,
+     *         or with status {@code 500 (Internal Server Error)} if the post
+     *         couldn't be updated.
+     * @throws URISyntaxException if the Location URI syntax is incorrect.
+     * @throws IOException
+     */
+    @PutMapping("")
+    public ResponseEntity<NkPost> updatePost(
+            @RequestPart NkPost post,
+            @RequestPart(required = false) List<NkFile> deletedNkFiles,
+            @RequestPart(required = false) List<MultipartFile> medias,
+            @RequestPart(required = false) List<MultipartFile> covers)
+            throws URISyntaxException, IOException {
+        log.debug("REST request to update NkPost : {}", post);
+        post = postService.update(post, deletedNkFiles, medias, covers);
+        return ResponseEntity.ok()
+                .headers(
+                        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, post.getId().toString()))
+                .body(post);
+    }
+
+    /**
+     * {@code PATCH  /posts/:id} : Partial updates given fields of an existing post,
+     * field will ignore if it is null
+     *
+     * @param id   the id of the post to save.
+     * @param post the post to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated post,
+     *         or with status {@code 400 (Bad Request)} if the post is not valid,
+     *         or with status {@code 404 (Not Found)} if the post is not found,
+     *         or with status {@code 500 (Internal Server Error)} if the post
+     *         couldn't be updated.
+     * @throws URISyntaxException if the Location URI syntax is incorrect.
+     */
+    @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    public ResponseEntity<NkPost> partialUpdatePost(
+            @PathVariable(value = "id", required = false) final Long id,
+            @NotNull @RequestBody NkPost post) throws URISyntaxException {
+        log.debug("REST request to partial update NkPost partially : {}, {}", id, post);
+        if (post.getId() == null) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        if (!Objects.equals(id, post.getId())) {
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+        }
+
+        if (!postRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
+
+        Optional<NkPost> result = postService.partialUpdate(post);
+
+        return ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, post.getId().toString()));
+    }
+
+    /**
+     * {@code GET  /posts?q=} : get all the posts.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of posts in body.
+     */
+    @GetMapping("")
+    public ResponseEntity<PageDTO<NkPost>> getAllPosts(@RequestParam(value = "q", defaultValue = "") String query,
+            @ParameterObject Pageable pageable) {
+        log.debug("REST request to get a page of Posts : {}", query);
+        return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
+                .body(postService.findAll(query, pageable));
+    }
+
+    /**
+     * {@code GET  /posts/nk-account/:id} : get all the posts.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of posts in body.
+     */
+    @GetMapping("/nk-account/{id}")
+    public ResponseEntity<PageDTO<NkPost>> getPostByAccount(@PathVariable("id") Long id, @ParameterObject Pageable pageable) {
+        log.debug("REST request to get a page of Posts by NkAccount : {}", id);
+        return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
+                .body(new PageDTO<NkPost>(postRepository.findByAccount(new NkAccount().id(id), pageable)));
+    }
+
+    // /**
+    // * {@code GET /posts/search?q=} : search posts that match the query.
+    // *
+    // * @param pageable the pagination information.
+    // * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the
+    // list
+    // * of posts in body.
+    // */
+    // @GetMapping("/search")
+    // public ResponseEntity<PageDTO<NkPost>> fullTextSearch(@RequestParam("q") String
+    // query,
+    // @ParameterObject Pageable pageable) {
+    // log.debug("REST request to search NkPost : {}", query);
+    // return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60,
+    // TimeUnit.SECONDS))
+    // .body(postService.fullTextSearch(query, pageable));
+    // }
+
+    /**
+     * {@code GET  /posts/:id} : get the "id" post.
+     *
+     * @param id the id of the post to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the post, or with status {@code 404 (Not Found)}.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<NkPost> getPost(@PathVariable("id") Long id) {
+        log.debug("REST request to get NkPost : {}", id);
+        Optional<NkPost> post = postService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(post);
+    }
+
+    /**
+     * {@code DELETE  /posts/:id} : delete the "id" post.
+     *
+     * @param id the id of the post to delete.
+     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePost(@PathVariable("id") Long id) {
+        log.debug("REST request to delete NkPost : {}", id);
+        postService.delete(id);
+        return ResponseEntity.noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build();
+    }
+}
