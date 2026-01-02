@@ -14,7 +14,7 @@ import org.ngelmakproject.domain.enumeration.Status;
 import org.ngelmakproject.domain.enumeration.Subject;
 import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.ArticleRepository;
-import org.ngelmakproject.service.dto.PageDTO;
+import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

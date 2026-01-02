@@ -1,5 +1,6 @@
 # Directory for holding static files (video, image, song, etc.)
 ngelmak-directory
+pgdata
 
 # Ignore target directory (compilation output)
 target/

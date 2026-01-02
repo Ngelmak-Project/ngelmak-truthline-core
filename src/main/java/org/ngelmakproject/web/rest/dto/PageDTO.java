@@ -1,4 +1,4 @@
-package org.ngelmakproject.service.dto;
+package org.ngelmakproject.web.rest.dto;
 
 import java.util.List;
 import java.util.stream.Collectors;

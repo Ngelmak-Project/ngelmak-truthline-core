@@ -14,9 +14,9 @@ import org.springframework.web.servlet.resource.PathResourceResolver;
 @Configuration
 public class StaticConfig implements WebMvcConfigurer {
 
-  @Value("${nk.file.upload-directory.location}")
+  @Value("${ngelmak.file.upload-directory.location}")
   private String location;
-  @Value("${nk.file.public.access.location}")
+  @Value("${ngelmak.file.public.access.location}")
   private String publicAccessLocation;
 
   @Override
@@ -27,10 +27,10 @@ public class StaticConfig implements WebMvcConfigurer {
      * Note that classpath here is by default src/main/resources.
      */
     String pattern = String.format("%s/**", this.publicAccessLocation); // ->
-    // ${nk.file.public.access.location}/**
+    // ${ngelmak.file.public.access.location}/**
     Path path = Paths.get(this.location).toAbsolutePath();
     String target = String.format("file:%s/", path.toString()); // ->
-    // file:${nk.file.upload-directory.location}/
+    // file:${ngelmak.file.upload-directory.location}/
 
     registry.addResourceHandler(pattern)
         .addResourceLocations(target)

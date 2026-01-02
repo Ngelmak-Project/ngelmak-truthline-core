@@ -9,12 +9,13 @@ import java.util.Optional;
 import org.ngelmakproject.domain.NkAccount;
 import org.ngelmakproject.repository.NkAccountRepository;
 import org.ngelmakproject.service.AccountService;
-import org.ngelmakproject.service.dto.NkAccountDTO;
+import org.ngelmakproject.web.rest.dto.AccountDTO;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
+import org.ngelmakproject.web.rest.util.HeaderUtil;
+import org.ngelmakproject.web.rest.util.PaginationUtil;
 import org.ngelmakproject.web.rest.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,9 +38,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.PaginationUtil;
-
 
 /**
  * REST controller for managing
@@ -82,7 +80,7 @@ public class NkAccountResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<NkAccount> createNkAccount(@Valid @RequestBody NkAccountDTO nkAccountDTO)
+    public ResponseEntity<NkAccount> createNkAccount(@Valid @RequestBody AccountDTO nkAccountDTO)
             throws URISyntaxException {
         log.debug("REST request to save NkAccount : {}", nkAccountDTO);
         if (nkAccountDTO.getId() != null) {
@@ -90,7 +88,7 @@ public class NkAccountResource {
         }
         NkAccount nkAccount = nkAccountService.save(nkAccountDTO);
         return ResponseEntity.created(new URI("/truthline-ingres/accounts/" + nkAccount.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME,
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         nkAccount.getId().toString()))
                 .body(nkAccount);
     }
@@ -117,7 +115,7 @@ public class NkAccountResource {
         }
         nkAccount = nkAccountService.update(nkAccount);
         return ResponseEntity.ok()
-                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME,
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME,
                         nkAccount.getId().toString()))
                 .body(nkAccount);
     }
@@ -157,7 +155,7 @@ public class NkAccountResource {
 
         return ResponseUtil.wrapOrNotFound(
                 result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, nkAccount.getId().toString()));
+                HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, nkAccount.getId().toString()));
     }
 
     /**
@@ -168,11 +166,11 @@ public class NkAccountResource {
      *         of nkAccounts in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<NkAccount>> getAllNkAccounts(@ParameterObject Pageable pageable) {
+    public ResponseEntity<List<NkAccount>> getAllNkAccounts(Pageable pageable) {
         log.debug("REST request to get a page of NkAccounts");
         Page<NkAccount> page = nkAccountService.findAll(pageable);
         HttpHeaders headers = PaginationUtil
-                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+                .generatePaginationHttpHeaders(page, ServletUriComponentsBuilder.fromCurrentRequest().toString());
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -215,7 +213,7 @@ public class NkAccountResource {
         log.debug("REST request to delete NkAccount : {}", id);
         nkAccountService.delete(id);
         return ResponseEntity.noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))
                 .build();
     }
 

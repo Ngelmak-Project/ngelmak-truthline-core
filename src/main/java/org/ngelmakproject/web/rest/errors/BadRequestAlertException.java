@@ -1,48 +1,56 @@
 package org.ngelmakproject.web.rest.errors;
 
-import java.net.URI;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.ErrorResponseException;
-import tech.jhipster.web.rest.errors.ProblemDetailWithCause;
-import tech.jhipster.web.rest.errors.ProblemDetailWithCause.ProblemDetailWithCauseBuilder;
 
-public class BadRequestAlertException extends ErrorResponseException {
+/**
+ * Custom exception to indicate a bad request with additional details.
+ */
+public class BadRequestAlertException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private final String entityName;
+	private final HttpStatus status;
+	private final String entityName;
+	private final String errorKey;
 
-    private final String errorKey;
+	/**
+	 * Constructor for creating a BadRequestAlertException.
+	 *
+	 * @param defaultMessage the default error message
+	 * @param entityName     the name of the entity that caused the error
+	 * @param errorKey       a unique key representing the type of error
+	 */
+	public BadRequestAlertException(String defaultMessage, String entityName, String errorKey) {
+		super(defaultMessage);
+		this.entityName = entityName;
+		this.errorKey = errorKey;
+		this.status = HttpStatus.BAD_REQUEST;
+	}
 
-    public BadRequestAlertException(String defaultMessage, String entityName, String errorKey) {
-        this(ErrorConstants.DEFAULT_TYPE, defaultMessage, entityName, errorKey);
-    }
+		/**
+	 * Constructor for creating a BadRequestAlertException.
+	 *
+	 * @param defaultMessage the default error message
+	 * @param entityName     the name of the entity that caused the error
+	 * @param errorKey       a unique key representing the type of error
+	 * @param status         status of the error
+	 */
+	public BadRequestAlertException(String defaultMessage, String entityName, String errorKey, HttpStatus status) {
+		super(defaultMessage);
+		this.entityName = entityName;
+		this.errorKey = errorKey;
+		this.status = status;
+	}
 
-    public BadRequestAlertException(URI type, String defaultMessage, String entityName, String errorKey) {
-        super(
-            HttpStatus.BAD_REQUEST,
-            ProblemDetailWithCauseBuilder.instance()
-                .withStatus(HttpStatus.BAD_REQUEST.value())
-                .withType(type)
-                .withTitle(defaultMessage)
-                .withProperty("message", "error." + errorKey)
-                .withProperty("params", entityName)
-                .build(),
-            null
-        );
-        this.entityName = entityName;
-        this.errorKey = errorKey;
-    }
+	public HttpStatus getStatus() {
+		return status;
+	}
 
-    public String getEntityName() {
-        return entityName;
-    }
+	public String getEntityName() {
+		return entityName;
+	}
 
-    public String getErrorKey() {
-        return errorKey;
-    }
-
-    public ProblemDetailWithCause getProblemDetailWithCause() {
-        return (ProblemDetailWithCause) this.getBody();
-    }
+	public String getErrorKey() {
+		return errorKey;
+	}
 }

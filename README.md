@@ -38,8 +38,8 @@ cloud:
       secret-id: ${VAULT_SECRET_ID}
     kv:
       enabled: true
-      backend: secret
-      default-context: thruline-core
+      backend: kv
+      default-context: jjwt
 ```
 
 ### Steps:

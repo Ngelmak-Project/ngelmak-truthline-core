@@ -41,7 +41,7 @@ public class NkAccount implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    /* User that own the account */
+    /* NkUser that own the account */
     @Column(name = "user_id", unique = true, nullable = false)
     private Long user;
 

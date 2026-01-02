@@ -10,9 +10,11 @@ import org.ngelmakproject.domain.NkConfig;
 import org.ngelmakproject.repository.ConfigRepository;
 import org.ngelmakproject.service.ConfigService;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
+import org.ngelmakproject.web.rest.util.HeaderUtil;
+import org.ngelmakproject.web.rest.util.PaginationUtil;
+import org.ngelmakproject.web.rest.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,9 +33,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.PaginationUtil;
-import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link org.ngelmakproject.domain.NkConfig}.
@@ -73,7 +72,7 @@ public class ConfigResource {
         }
         config = configService.save(config);
         return ResponseEntity.created(new URI("/truthline-ingres/configs/" + config.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, config.getId().toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME, config.getId().toString()))
             .body(config);
     }
 
@@ -104,7 +103,7 @@ public class ConfigResource {
 
         config = configService.update(config);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, config.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, config.getId().toString()))
             .body(config);
     }
 
@@ -140,7 +139,7 @@ public class ConfigResource {
 
         return ResponseUtil.wrapOrNotFound(
             result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, config.getId().toString())
+            HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, config.getId().toString())
         );
     }
 
@@ -152,8 +151,7 @@ public class ConfigResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of configs in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<NkConfig>> getAllConfigs(
-        @ParameterObject Pageable pageable,
+    public ResponseEntity<List<NkConfig>> getAllConfigs(Pageable pageable,
         @RequestParam(name = "filter", required = false) String filter
     ) {
         if ("ngelmakaccount-is-null".equals(filter)) {
@@ -162,7 +160,7 @@ public class ConfigResource {
         }
         log.debug("REST request to get a page of Configs");
         Page<NkConfig> page = configService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, ServletUriComponentsBuilder.fromCurrentRequest().toString());
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -190,7 +188,7 @@ public class ConfigResource {
         log.debug("REST request to delete NkConfig : {}", id);
         configService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))
             .build();
     }
 }

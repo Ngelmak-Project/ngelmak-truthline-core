@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
   @ExceptionHandler(BadRequestAlertException.class)
   public ResponseEntity<Object> handleResourceNotFoundException(BadRequestAlertException ex) {
-    return new ResponseEntity<>(ex.getMessage(), ex.getStatusCode());
+    return new ResponseEntity<>(ex.getMessage(), ex.getStatus());
   }
 }

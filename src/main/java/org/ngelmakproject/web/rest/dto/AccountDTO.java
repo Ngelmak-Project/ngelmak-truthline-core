@@ -1,25 +1,22 @@
-package org.ngelmakproject.service.dto;
+package org.ngelmakproject.web.rest.dto;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 
-import org.springframework.web.multipart.MultipartFile;
+import org.ngelmakproject.domain.enumeration.Accessibility;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@ToString
-public class AttachmentDTO implements Serializable {
+public class AccountDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -28,5 +25,12 @@ public class AttachmentDTO implements Serializable {
     @NotNull
     private String name;
 
-    private MultipartFile file;
+    private String foregroundPicture;
+
+    private String backgroundPicture;
+
+    private Accessibility visibility;
+
+    private ZonedDateTime createdAt;
+
 }

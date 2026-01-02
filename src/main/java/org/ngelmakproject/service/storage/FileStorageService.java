@@ -28,11 +28,11 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class FileStorageService {
 
-  @Value("${nk.file.upload-directory.location}")
+  @Value("${ngelmak.file.upload-directory.location}")
   private String location;
-  @Value("${nk.file.public.access.location}")
+  @Value("${ngelmak.file.public.access.location}")
   private String publicAccessLocation;
-  @Value("${nk.file.private.access.location}")
+  @Value("${ngelmak.file.private.access.location}")
   private String privateAccessLocation;
 
   @Value("${server.host}")

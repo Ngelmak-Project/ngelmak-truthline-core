@@ -13,12 +13,12 @@ import org.ngelmakproject.domain.NkArticle;
 import org.ngelmakproject.domain.NkAttachment;
 import org.ngelmakproject.repository.ArticleRepository;
 import org.ngelmakproject.service.ArticleService;
-import org.ngelmakproject.service.dto.PageDTO;
+import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
+import org.ngelmakproject.web.rest.util.HeaderUtil;
 import org.ngelmakproject.web.rest.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.CacheControl;
@@ -37,7 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.constraints.NotNull;
-import tech.jhipster.web.util.HeaderUtil;
 
 /**
  * REST controller for managing {@link org.ngelmakproject.domain.NkArticle}.
@@ -72,7 +71,8 @@ public class ArticleResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<NkArticle> createArticle(@RequestPart NkArticle post, @RequestPart List<NkAttachment> attachments,
+    public ResponseEntity<NkArticle> createArticle(@RequestPart NkArticle post,
+            @RequestPart List<NkAttachment> attachments,
             @RequestPart(required = false) List<MultipartFile> files,
             @RequestPart(required = false) List<MultipartFile> posters)
             throws URISyntaxException {
@@ -82,7 +82,7 @@ public class ArticleResource {
         }
         post = postService.save(post, attachments, files, posters);
         return ResponseEntity.created(new URI("/truthline-ingres/posts/" + post.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME,
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         post.getId().toString()))
                 .body(post);
     }
@@ -112,7 +112,7 @@ public class ArticleResource {
         post = postService.update(post, attachments, deletedAttachments, files, posters);
         return ResponseEntity.ok()
                 .headers(
-                        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, post.getId().toString()))
+                        HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, post.getId().toString()))
                 .body(post);
     }
 
@@ -150,18 +150,19 @@ public class ArticleResource {
 
         return ResponseUtil.wrapOrNotFound(
                 result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, post.getId().toString()));
+                HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, post.getId().toString()));
     }
 
     /**
      * {@code GET  /posts?q=} : get all the posts.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of posts in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of posts in body.
      */
     @GetMapping("")
     public ResponseEntity<PageDTO<NkArticle>> getAllArticles(@RequestParam(value = "q", defaultValue = "") String query,
-            @ParameterObject Pageable pageable) {
+            Pageable pageable) {
         log.debug("REST request to get a page of Articles : {}", query);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
                 .body(postService.findAll(query, pageable));
@@ -171,10 +172,11 @@ public class ArticleResource {
      * {@code GET  /posts/nk-account/:id} : get all the posts.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of posts in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of posts in body.
      */
     @GetMapping("/nk-account/{id}")
-    public ResponseEntity<PageDTO<NkArticle>> getArticleByAccount(@PathVariable("id") Long id, @ParameterObject Pageable pageable) {
+    public ResponseEntity<PageDTO<NkArticle>> getArticleByAccount(@PathVariable("id") Long id, Pageable pageable) {
         log.debug("REST request to get a page of Articles by NkAccount : {}", id);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
                 .body(new PageDTO<NkArticle>(postRepository.findByAccount(new NkAccount().id(id), pageable)));
@@ -189,7 +191,8 @@ public class ArticleResource {
     // * of posts in body.
     // */
     // @GetMapping("/search")
-    // public ResponseEntity<PageDTO<NkArticle>> fullTextSearch(@RequestParam("q") String
+    // public ResponseEntity<PageDTO<NkArticle>> fullTextSearch(@RequestParam("q")
+    // String
     // query,
     // @ParameterObject Pageable pageable) {
     // log.debug("REST request to search NkArticle : {}", query);
@@ -223,7 +226,7 @@ public class ArticleResource {
         log.debug("REST request to delete NkArticle : {}", id);
         postService.delete(id);
         return ResponseEntity.noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))
                 .build();
     }
 }

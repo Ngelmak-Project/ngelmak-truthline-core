@@ -13,12 +13,12 @@ import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.repository.PostRepository;
 import org.ngelmakproject.service.PostService;
-import org.ngelmakproject.service.dto.PageDTO;
+import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
+import org.ngelmakproject.web.rest.util.HeaderUtil;
 import org.ngelmakproject.web.rest.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.CacheControl;
@@ -37,7 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.constraints.NotNull;
-import tech.jhipster.web.util.HeaderUtil;
 
 /**
  * REST controller for managing {@link org.ngelmakproject.domain.NkPost}.
@@ -82,7 +81,7 @@ public class PostResource {
         }
         post = postService.save(post, medias, covers);
         return ResponseEntity.created(new URI("/truthline-ingres/posts/" + post.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME,
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         post.getId().toString()))
                 .body(post);
     }
@@ -111,7 +110,7 @@ public class PostResource {
         post = postService.update(post, deletedNkFiles, medias, covers);
         return ResponseEntity.ok()
                 .headers(
-                        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, post.getId().toString()))
+                        HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, post.getId().toString()))
                 .body(post);
     }
 
@@ -149,18 +148,19 @@ public class PostResource {
 
         return ResponseUtil.wrapOrNotFound(
                 result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, post.getId().toString()));
+                HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, post.getId().toString()));
     }
 
     /**
      * {@code GET  /posts?q=} : get all the posts.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of posts in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of posts in body.
      */
     @GetMapping("")
     public ResponseEntity<PageDTO<NkPost>> getAllPosts(@RequestParam(value = "q", defaultValue = "") String query,
-            @ParameterObject Pageable pageable) {
+            Pageable pageable) {
         log.debug("REST request to get a page of Posts : {}", query);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
                 .body(postService.findAll(query, pageable));
@@ -170,10 +170,11 @@ public class PostResource {
      * {@code GET  /posts/nk-account/:id} : get all the posts.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of posts in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of posts in body.
      */
     @GetMapping("/nk-account/{id}")
-    public ResponseEntity<PageDTO<NkPost>> getPostByAccount(@PathVariable("id") Long id, @ParameterObject Pageable pageable) {
+    public ResponseEntity<PageDTO<NkPost>> getPostByAccount(@PathVariable("id") Long id, Pageable pageable) {
         log.debug("REST request to get a page of Posts by NkAccount : {}", id);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
                 .body(new PageDTO<NkPost>(postRepository.findByAccount(new NkAccount().id(id), pageable)));
@@ -188,9 +189,10 @@ public class PostResource {
     // * of posts in body.
     // */
     // @GetMapping("/search")
-    // public ResponseEntity<PageDTO<NkPost>> fullTextSearch(@RequestParam("q") String
+    // public ResponseEntity<PageDTO<NkPost>> fullTextSearch(@RequestParam("q")
+    // String
     // query,
-    // @ParameterObject Pageable pageable) {
+    // Pageable pageable) {
     // log.debug("REST request to search NkPost : {}", query);
     // return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60,
     // TimeUnit.SECONDS))
@@ -222,7 +224,7 @@ public class PostResource {
         log.debug("REST request to delete NkPost : {}", id);
         postService.delete(id);
         return ResponseEntity.noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))
                 .build();
     }
 }

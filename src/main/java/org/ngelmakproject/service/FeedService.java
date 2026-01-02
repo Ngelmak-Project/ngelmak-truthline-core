@@ -9,7 +9,7 @@ import org.ngelmakproject.domain.NkFeed;
 import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.repository.FeedRepository;
 import org.ngelmakproject.repository.MembershipRepository;
-import org.ngelmakproject.service.dto.PageDTO;
+import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

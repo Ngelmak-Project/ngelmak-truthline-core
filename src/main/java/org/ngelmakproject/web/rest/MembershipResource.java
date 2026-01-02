@@ -1,7 +1,5 @@
 package org.ngelmakproject.web.rest;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -12,19 +10,29 @@ import org.ngelmakproject.domain.NkMembership;
 import org.ngelmakproject.repository.MembershipRepository;
 import org.ngelmakproject.service.MembershipService;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
+import org.ngelmakproject.web.rest.util.HeaderUtil;
+import org.ngelmakproject.web.rest.util.PaginationUtil;
+import org.ngelmakproject.web.rest.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.PaginationUtil;
-import tech.jhipster.web.util.ResponseUtil;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * REST controller for managing {@link org.ngelmakproject.domain.NkMembership}.
@@ -64,7 +72,7 @@ public class MembershipResource {
         }
         membership = membershipService.save(membership);
         return ResponseEntity.created(new URI("/truthline-ingres/memberships/" + membership.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, membership.getId().toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME, membership.getId().toString()))
             .body(membership);
     }
 
@@ -97,7 +105,7 @@ public class MembershipResource {
 
         membership = membershipService.update(membership);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, membership.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, membership.getId().toString()))
             .body(membership);
     }
 
@@ -133,7 +141,7 @@ public class MembershipResource {
 
         return ResponseUtil.wrapOrNotFound(
             result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, membership.getId().toString())
+            HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, membership.getId().toString())
         );
     }
 
@@ -144,10 +152,10 @@ public class MembershipResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of memberships in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<NkMembership>> getAllMemberships(@ParameterObject Pageable pageable) {
+    public ResponseEntity<List<NkMembership>> getAllMemberships(Pageable pageable) {
         log.debug("REST request to get a page of Memberships");
         Page<NkMembership> page = membershipService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, ServletUriComponentsBuilder.fromCurrentRequest().toString());
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -175,7 +183,7 @@ public class MembershipResource {
         log.debug("REST request to delete NkMembership : {}", id);
         membershipService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))
             .build();
     }
 }

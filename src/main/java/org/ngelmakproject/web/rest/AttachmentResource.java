@@ -8,6 +8,7 @@ import org.ngelmakproject.domain.NkArticle;
 import org.ngelmakproject.domain.NkAttachment;
 import org.ngelmakproject.repository.AttachmentRepository;
 import org.ngelmakproject.service.AttachmentService;
+import org.ngelmakproject.web.rest.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link org.ngelmakproject.domain.NkAttachment}.

@@ -11,8 +11,8 @@ import org.ngelmakproject.domain.enumeration.Accessibility;
 import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.MembershipRepository;
 import org.ngelmakproject.repository.NkAccountRepository;
-import org.ngelmakproject.service.dto.NkAccountDTO;
 import org.ngelmakproject.service.storage.FileStorageService;
+import org.ngelmakproject.web.rest.dto.AccountDTO;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
@@ -55,10 +55,10 @@ public class AccountService {
      * @param nkAccount the entity to save.
      * @return the persisted entity.
      */
-    public NkAccount save(NkAccountDTO nkAccountDTO) {
+    public NkAccount save(AccountDTO nkAccountDTO) {
         log.info("Request to save NkAccount : {}", nkAccountDTO);
 
-        // User currentUser = userService.getUserWithAuthorities()
+        // NkUser currentUser = userService.getUserWithAuthorities()
         //         .orElseThrow(() -> new BadRequestAlertException("A new should always be attach to a user", ENTITY_NAME,
         //                 "userNotFound"));
 
@@ -160,7 +160,7 @@ public class AccountService {
      */
     @Transactional(readOnly = true)
     public Optional<NkAccount> findOneByCurrentUser() {
-        // Optional<User> optional = userService.getUserWithAuthorities();
+        // Optional<NkUser> optional = userService.getUserWithAuthorities();
         // if (optional.isEmpty()) {
         //     return Optional.empty();
         // }
@@ -175,7 +175,7 @@ public class AccountService {
      */
     @Transactional(readOnly = true)
     public NkAccount findByCurrentUser() {
-        // User user = userService.getUserWithAuthorities().orElseThrow(UserNotFoundException::new);
+        // NkUser user = userService.getUserWithAuthorities().orElseThrow(UserNotFoundException::new);
         return nkAccountRepository.findOneByUser(null).orElseThrow(AccountNotFoundException::new);
     }
 

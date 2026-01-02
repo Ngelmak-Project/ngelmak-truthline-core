@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface FeedRepository extends JpaRepository<NkFeed, String> {
+public interface FeedRepository extends JpaRepository<NkFeed, Long> {
   Page<NkFeed> findByFeedOwner(NkAccount feedOwner, Pageable pageable);
   Page<NkFeed> findByFeedOwnerIn(List<NkAccount> feedOwners, Pageable pageable);
   @Query("SELECT f FROM NkFeed f ORDER BY f.post.at")
