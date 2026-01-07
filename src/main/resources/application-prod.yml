@@ -61,7 +61,7 @@ spring:
 
 server:
   host: localhost
-  port: 4043
+  port: 5742
   protocol: http
 
 logging:

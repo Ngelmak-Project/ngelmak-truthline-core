@@ -16,6 +16,6 @@ WORKDIR /ngelmak
 
 COPY --from=builder ./ngelmak/target/ngelmak-core-0.0.1-SNAPSHOT.jar ./ngelmak-core.jar
 
-EXPOSE 4043
+EXPOSE 5742
 
 ENTRYPOINT ["java", "-jar", "ngelmak-core.jar"]

@@ -4,7 +4,7 @@ services:
     build: .
     container_name: ngelmak-core
     ports:
-      - "4043:4043"
+      - "5742:5742"
     networks:
       - ngelmak-net
 
