@@ -23,8 +23,6 @@ target/
 *.7z
 
 # Ignore configuration files
-application.properties
-application.yml
 *.h2.db
 
 # Ignore local environment settings

@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: "Ngelmak Project - Core"
+
+  profiles:
+    active: dev # or prod
+
+  config.import: optional:vault:// # Enable Vault as a Config Data source. This requires at least one Vault backend to be enabled and resolvable.
+  cloud:
+    vault:
+      uri: http://acemagic:8200
+      authentication: approle
+      fail-fast: false # Enable fail-fast to force confirmation. Spring Boot to crash immediately when Vault/OpenBao is not reachable
+      app-role:
+        role-id: 8a23bd57-a50a-79a3-0ae7-4964e5918ac0
+        secret-id: 0e66597f-7c9e-7ed8-8b68-897d2646c9ae
+      database:
+        enabled: false
+        backend: database
+        role: ngelmak-rw-role
+      kv:
+        application-name: "" # skip the application name prefix
+        enabled: false
+        backend: kv
+        default-context: jjwt
+        profile-separator: "/" # kv/jjwt/dev or kv/jjwt/prod
+
+  datasource:
+    # hikari:
+    #   initialization-fail-timeout: 0
+    url: jdbc:postgresql://acemagic:5432/ngelmakdb
+    username: app_migrator
+    password: migratorpass
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none # Use application-bootstrap.yml for updating the database schema
+
+  liquibase:
+    enabled: false
+
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 30MB
+      max-request-size: 30MB
+      resolve-lazily: false
+
+  resources:
+    cache-period: 86400
+
+server:
+  host: localhost
+  port: 4043
+  protocol: http
+
+spring.devtools.livereload.port: 35743
+
+logging:
+  level:
+    org.springframework.vault: DEBUG
+    # org.springframework.jdbc.datasource: DEBUG
+    # org:
+    #   hibernate:
+    #     SQL: WARN
+    #   springframework:
+    #     jdbc:
+    #       core:
+    #         JdbcTemplate: DEBUG
+    #         StatementCreatorUtils: TRACE
+    org.springframework.boot.autoconfigure: INFO
+
+debug: true
+
+
+file:
+  upload-directory:
+    location: ./ngelmak-directory/files
+  public:
+    access:
+      location: /resources/public/files
+  private:
+    access:
+      location: /resources/files
