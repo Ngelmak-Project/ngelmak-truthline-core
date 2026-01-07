@@ -10,10 +10,10 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.open</groupId>
-	<artifactId>ngelmakproject</artifactId>
+	<artifactId>ngelmak-core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Ngelmak Project</name>
-	<description>The Ngelmak project is an open-source project for social media.</description>
+	<name>Ngelmak Core</name>
+	<description>Primary service for information exchange.</description>
 	<url />
 	<licenses>
 		<license />
