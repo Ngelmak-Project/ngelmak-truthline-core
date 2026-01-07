@@ -1,11 +1,11 @@
 spring:
   application:
-    name: "Ngelmak Project"
+    name: "Ngelmak Project - Core"
   config:
     import: vault:// # Enable Vault as a Config Data source
   cloud:
     vault:
-      uri: http://localhost:8200
+      uri: http://acemagic:8200
       authentication: approle
       fail-fast: true # Enable fail-fast to force confirmation. Spring Boot to crash immediately when Vault/OpenBao is not reachable
       app-role:
