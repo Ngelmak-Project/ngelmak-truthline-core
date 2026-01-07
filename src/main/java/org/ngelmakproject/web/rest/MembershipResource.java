@@ -38,14 +38,14 @@ import jakarta.validation.constraints.NotNull;
  * REST controller for managing {@link org.ngelmakproject.domain.NkMembership}.
  */
 @RestController
-@RequestMapping("/truthline-ingres/memberships")
+@RequestMapping("/api/memberships")
 public class MembershipResource {
 
     private static final Logger log = LoggerFactory.getLogger(MembershipResource.class);
 
     private static final String ENTITY_NAME = "membership";
 
-    @Value("${ngelmak.clientApp.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     private final MembershipService membershipService;
@@ -71,7 +71,7 @@ public class MembershipResource {
             throw new BadRequestAlertException("A new membership cannot already have an ID", ENTITY_NAME, "idexists");
         }
         membership = membershipService.save(membership);
-        return ResponseEntity.created(new URI("/truthline-ingres/memberships/" + membership.getId()))
+        return ResponseEntity.created(new URI("/api/memberships/" + membership.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME, membership.getId().toString()))
             .body(membership);
     }

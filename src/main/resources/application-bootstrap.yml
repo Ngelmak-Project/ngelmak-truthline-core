@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/ngelmakdb
+    url: jdbc:postgresql://acemagic:5432/ngelmakdb
     username: ${BOOTSTRAP_DB_USERNAME}
     password: ${BOOTSTRAP_DB_PASSWORD}
   jpa:

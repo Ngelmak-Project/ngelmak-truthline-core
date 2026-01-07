@@ -23,12 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
  * REST controller for managing {@link org.ngelmakproject.domain.NkAttachment}.
  */
 @RestController
-@RequestMapping("/truthline-ingres/attachments")
+@RequestMapping("/api/attachments")
 public class AttachmentResource {
 
     private static final Logger log = LoggerFactory.getLogger(AttachmentResource.class);
 
-    @Value("${ngelmak.clientApp.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     private final AttachmentService attachmentService;

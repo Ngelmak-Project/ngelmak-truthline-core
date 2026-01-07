@@ -38,14 +38,14 @@ import jakarta.validation.constraints.NotNull;
  * REST controller for managing {@link org.ngelmakproject.domain.NkReview}.
  */
 @RestController
-@RequestMapping("/truthline-ingres/reviews")
+@RequestMapping("/api/reviews")
 public class ReviewResource {
 
     private static final Logger log = LoggerFactory.getLogger(ReviewResource.class);
 
     private static final String ENTITY_NAME = "review";
 
-    @Value("${ngelmak.clientApp.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     private final ReviewService reviewService;
@@ -73,7 +73,7 @@ public class ReviewResource {
             throw new BadRequestAlertException("A new review cannot already have an ID", ENTITY_NAME, "idexists");
         }
         review = reviewService.save(review);
-        return ResponseEntity.created(new URI("/truthline-ingres/reviews/" + review.getId()))
+        return ResponseEntity.created(new URI("/api/reviews/" + review.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME, review.getId().toString()))
                 .body(review);
     }

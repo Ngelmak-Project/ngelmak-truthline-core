@@ -11,6 +11,7 @@ import org.ngelmakproject.domain.enumeration.Accessibility;
 import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.MembershipRepository;
 import org.ngelmakproject.repository.NkAccountRepository;
+import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.storage.FileStorageService;
 import org.ngelmakproject.web.rest.dto.AccountDTO;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,7 +38,7 @@ public class AccountService {
 
     private static final Logger log = LoggerFactory.getLogger(AccountService.class);
 
-    private final NkAccountRepository nkAccountRepository;
+    private final NkAccountRepository accountRepository;
 
     @Autowired
     private MembershipRepository membershipRepository;
@@ -45,91 +47,92 @@ public class AccountService {
     @Autowired
     private FileStorageService fileStorageService;
 
-    public AccountService(NkAccountRepository nkAccountRepository) {
-        this.nkAccountRepository = nkAccountRepository;
+    public AccountService(NkAccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
     }
 
     /**
-     * Save a nkAccount.
+     * Save a account.
      *
-     * @param nkAccount the entity to save.
+     * @param account the entity to save.
      * @return the persisted entity.
      */
-    public NkAccount save(AccountDTO nkAccountDTO) {
-        log.info("Request to save NkAccount : {}", nkAccountDTO);
+    public NkAccount save(AccountDTO accountDTO) {
+        log.info("Request to save NkAccount : {}", accountDTO);
 
         // NkUser currentUser = userService.getUserWithAuthorities()
-        //         .orElseThrow(() -> new BadRequestAlertException("A new should always be attach to a user", ENTITY_NAME,
-        //                 "userNotFound"));
+        // .orElseThrow(() -> new BadRequestAlertException("A new should always be
+        // attach to a user", ENTITY_NAME,
+        // "userNotFound"));
 
-        NkAccount nkAccount = new NkAccount()
+        NkAccount account = new NkAccount()
                 .createdAt(Instant.now())
-                .name(nkAccountDTO.getName())
-                .visibility(nkAccountDTO.getVisibility())
+                .name(accountDTO.getName())
+                .visibility(accountDTO.getVisibility())
                 .user(0l); // [TODO]: retrieve the current user id
         NkConfig defaultConfig = new NkConfig();
         defaultConfig.lastUpdate(Instant.now());
         defaultConfig.defaultAccessibility(Accessibility.DEFAULT);
         defaultConfig.defaultVisibility(Visibility.PRIVATE);
         defaultConfig = configService.save(defaultConfig);
-        nkAccount.setConfiguration(defaultConfig);
-        return nkAccountRepository.save(nkAccount);
+        account.setConfiguration(defaultConfig);
+        return accountRepository.save(account);
     }
 
     /**
-     * Update a nkAccount.
+     * Update a account.
      *
-     * @param nkAccount the entity to save.
+     * @param account the entity to save.
      * @return the persisted entity.
      */
-    public NkAccount update(NkAccount nkAccount) {
-        log.debug("Request to update NkAccount : {}", nkAccount);
-        if (!nkAccountRepository.existsById(nkAccount.getId())) {
+    public NkAccount update(NkAccount account) {
+        log.debug("Request to update NkAccount : {}", account);
+        if (!accountRepository.existsById(account.getId())) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
-        return nkAccountRepository.save(nkAccount);
+        return accountRepository.save(account);
     }
 
     /**
-     * Partially update a nkAccount.
+     * Partially update a account.
      *
-     * @param nkAccount the entity to update partially.
+     * @param account the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<NkAccount> partialUpdate(NkAccount nkAccount) {
-        log.debug("Request to partially update NkAccount : {}", nkAccount);
+    public Optional<NkAccount> partialUpdate(NkAccount account) {
+        log.debug("Request to partially update NkAccount : {}", account);
 
         return this.findOneByCurrentUser()
                 .map(existingNkAccount -> {
-                    if (nkAccount.getIdentifier() != null) {
-                        existingNkAccount.setIdentifier(nkAccount.getIdentifier());
+                    if (account.getIdentifier() != null) {
+                        existingNkAccount.setIdentifier(account.getIdentifier());
                     }
-                    if (nkAccount.getName() != null) {
-                        existingNkAccount.setName(nkAccount.getName());
+                    if (account.getName() != null) {
+                        existingNkAccount.setName(account.getName());
                     }
-                    if (nkAccount.getAvatar() != null) {
-                        existingNkAccount.setAvatar(nkAccount.getAvatar());
+                    if (account.getAvatar() != null) {
+                        existingNkAccount.setAvatar(account.getAvatar());
                     }
-                    if (nkAccount.getBanner() != null) {
-                        existingNkAccount.setBanner(nkAccount.getBanner());
+                    if (account.getBanner() != null) {
+                        existingNkAccount.setBanner(account.getBanner());
                     }
-                    if (nkAccount.getVisibility() != null) {
-                        existingNkAccount.setVisibility(nkAccount.getVisibility());
+                    if (account.getVisibility() != null) {
+                        existingNkAccount.setVisibility(account.getVisibility());
                     }
-                    if (nkAccount.getCreatedAt() != null) {
-                        existingNkAccount.setCreatedAt(nkAccount.getCreatedAt());
+                    if (account.getCreatedAt() != null) {
+                        existingNkAccount.setCreatedAt(account.getCreatedAt());
                     }
-                    if (nkAccount.getDescription() != null) {
-                        existingNkAccount.setDescription(nkAccount.getDescription());
+                    if (account.getDescription() != null) {
+                        existingNkAccount.setDescription(account.getDescription());
                     }
 
                     return existingNkAccount;
                 })
-                .map(nkAccountRepository::save);
+                .map(accountRepository::save);
     }
 
     /**
-     * Get all the nkAccounts.
+     * Get all the accounts.
      *
      * @param pageable the pagination information.
      * @return the list of entities.
@@ -137,11 +140,11 @@ public class AccountService {
     @Transactional(readOnly = true)
     public Page<NkAccount> findAll(Pageable pageable) {
         log.debug("Request to get all NkAccounts");
-        return nkAccountRepository.findAll(pageable);
+        return accountRepository.findAll(pageable);
     }
 
     /**
-     * Get one nkAccount by id.
+     * Get one account by id.
      *
      * @param id the id of the entity.
      * @return the entity.
@@ -149,44 +152,43 @@ public class AccountService {
     @Transactional(readOnly = true)
     public Optional<NkAccount> findOne(Long id) {
         log.debug("Request to get NkAccount : {}", id);
-        return nkAccountRepository.findById(id);
+        return accountRepository.findById(id);
     }
 
     /**
-     * Get one nkAccount by id.
+     * Get one account by id.
      *
      * @param id the id of the entity.
      * @return the entity.
      */
     @Transactional(readOnly = true)
     public Optional<NkAccount> findOneByCurrentUser() {
-        // Optional<NkUser> optional = userService.getUserWithAuthorities();
-        // if (optional.isEmpty()) {
-        //     return Optional.empty();
-        // }
-        return nkAccountRepository.findOneByUser(null);
+        Long userId = ((UserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal())
+                .getUserId();
+        return accountRepository.findOneByUser(userId);
     }
 
     /**
-     * Get one nkAccount by id.
+     * Get one account by id.
      *
      * @param id the id of the entity.
      * @return the entity.
      */
     @Transactional(readOnly = true)
     public NkAccount findByCurrentUser() {
-        // NkUser user = userService.getUserWithAuthorities().orElseThrow(UserNotFoundException::new);
-        return nkAccountRepository.findOneByUser(null).orElseThrow(AccountNotFoundException::new);
+        return accountRepository.findOneByUser(null).orElseThrow(AccountNotFoundException::new);
     }
 
     /**
-     * Delete the nkAccount by id.
+     * Delete the account by id.
      *
      * @param id the id of the entity.
      */
     public void delete(Long id) {
         log.debug("Request to delete NkAccount : {}", id);
-        nkAccountRepository.deleteById(id);
+        accountRepository.deleteById(id);
     }
 
     /**
@@ -197,16 +199,16 @@ public class AccountService {
     public NkAccount updateAvatar(MultipartFile file) {
         log.debug("Request to update NkAccount avatar");
         return this.findOneByCurrentUser().map(
-                nkAccount -> {
-                    String existingAvatar = nkAccount.getAvatar();
+                account -> {
+                    String existingAvatar = account.getAvatar();
                     String[] dirs = { "public", "avatars", };
                     URL url = fileStorageService.store(file, true, file.getOriginalFilename(), dirs);
-                    nkAccount.setAvatar(url.toString());
-                    nkAccountRepository.save(nkAccount);
+                    account.setAvatar(url.toString());
+                    accountRepository.save(account);
                     if (existingAvatar != null && !existingAvatar.isEmpty())
                         fileStorageService.delete(existingAvatar);
-                    log.debug("Changed Information for NkAccount: {}", nkAccount);
-                    return nkAccount;
+                    log.debug("Changed Information for NkAccount: {}", account);
+                    return account;
                 }).orElseThrow(AccountNotFoundException::new);
     }
 
@@ -218,16 +220,16 @@ public class AccountService {
     public NkAccount updateBanner(MultipartFile file) {
         log.debug("Request to update NkAccount banner");
         return this.findOneByCurrentUser().map(
-                nkAccount -> {
-                    String existingBanner = nkAccount.getBanner();
+                account -> {
+                    String existingBanner = account.getBanner();
                     String[] dirs = { "public", "banners", };
                     URL url = fileStorageService.store(file, true, file.getOriginalFilename(), dirs);
-                    nkAccount.setBanner(url.toString());
-                    nkAccountRepository.save(nkAccount);
+                    account.setBanner(url.toString());
+                    accountRepository.save(account);
                     if (existingBanner != null && !existingBanner.isEmpty())
                         fileStorageService.delete(existingBanner);
-                    log.debug("Changed information for NkAccount: {}", nkAccount);
-                    return nkAccount;
+                    log.debug("Changed information for NkAccount: {}", account);
+                    return account;
                 }).orElseThrow(AccountNotFoundException::new);
     }
 
@@ -235,9 +237,10 @@ public class AccountService {
         log.debug("Request to follow an account");
         return this.findOneByCurrentUser().map(
                 currAccount -> {
-                    NkAccount followed = this.nkAccountRepository.findById(targetAccountId)
+                    NkAccount followed = this.accountRepository.findById(targetAccountId)
                             .orElseThrow(AccountNotFoundException::new);
-                    NkMembership membership = new NkMembership().follower(currAccount).following(followed).at(Instant.now());
+                    NkMembership membership = new NkMembership().follower(currAccount).following(followed)
+                            .at(Instant.now());
                     membershipRepository.save(membership);
                     log.debug("A new relationship is created between {} and {}", currAccount, followed);
                     return currAccount;
@@ -249,7 +252,8 @@ public class AccountService {
         return this.findOneByCurrentUser().map(
                 currAccount -> {
                     NkAccount followed = new NkAccount().id(targetAccountId);
-                    membershipRepository.findOneByFollowingAndFollower(followed, currAccount).ifPresent(membership -> this.membershipRepository.delete(membership));
+                    membershipRepository.findOneByFollowingAndFollower(followed, currAccount)
+                            .ifPresent(membership -> this.membershipRepository.delete(membership));
                     log.debug("NkMembership is now removed.", currAccount);
                     return currAccount;
                 }).orElseThrow(AccountNotFoundException::new);

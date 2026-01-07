@@ -21,7 +21,7 @@ spring:
   datasource:
     hikari:
       initialization-fail-timeout: 0
-    url: jdbc:postgresql://localhost:5432/ngelmakdb
+    url: jdbc:postgresql://acemagic:5432/ngelmakdb
     # username: v-root-ngelmak--NQiueQV69JiGulzxWmpD-1767183902
     # password: YPvXyQ8fEf3Wr-nr9cC9
 
@@ -61,7 +61,7 @@ spring:
 
 server:
   host: localhost
-  port: 4042
+  port: 4043
   protocol: http
 
 logging:

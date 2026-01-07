@@ -38,14 +38,14 @@ import jakarta.validation.constraints.NotNull;
  * REST controller for managing {@link org.ngelmakproject.domain.NkTicket}.
  */
 @RestController
-@RequestMapping("/truthline-ingres/tickets")
+@RequestMapping("/api/tickets")
 public class TicketResource {
 
     private static final Logger log = LoggerFactory.getLogger(TicketResource.class);
 
     private static final String ENTITY_NAME = "ticket";
 
-    @Value("${ngelmak.clientApp.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     private final TicketService ticketService;
@@ -73,7 +73,7 @@ public class TicketResource {
             throw new BadRequestAlertException("A new ticket cannot already have an ID", ENTITY_NAME, "idexists");
         }
         ticket = ticketService.save(ticket);
-        return ResponseEntity.created(new URI("/truthline-ingres/tickets/" + ticket.getId()))
+        return ResponseEntity.created(new URI("/api/tickets/" + ticket.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME, ticket.getId().toString()))
                 .body(ticket);
     }

@@ -38,14 +38,14 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  * REST controller for managing {@link org.ngelmakproject.domain.NkConfig}.
  */
 @RestController
-@RequestMapping("/truthline-ingres/configs")
+@RequestMapping("/api/configs")
 public class ConfigResource {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigResource.class);
 
     private static final String ENTITY_NAME = "config";
 
-    @Value("${ngelmak.clientApp.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     private final ConfigService configService;
@@ -71,7 +71,7 @@ public class ConfigResource {
             throw new BadRequestAlertException("A new config cannot already have an ID", ENTITY_NAME, "idexists");
         }
         config = configService.save(config);
-        return ResponseEntity.created(new URI("/truthline-ingres/configs/" + config.getId()))
+        return ResponseEntity.created(new URI("/api/configs/" + config.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME, config.getId().toString()))
             .body(config);
     }

@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.ngelmakproject.domain.NkAccount;
 import org.ngelmakproject.repository.NkAccountRepository;
+import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.AccountService;
 import org.ngelmakproject.web.rest.dto.AccountDTO;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
@@ -22,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -44,8 +47,8 @@ import jakarta.validation.constraints.NotNull;
  * {@link org.ngelmakproject.domain.NkAccount}.
  */
 @RestController
-@RequestMapping("/truthline-ingres/accounts")
-public class NkAccountResource {
+@RequestMapping("/api/accounts")
+public class AccountResource {
 
     @ResponseStatus(HttpStatus.NOT_FOUND) // Or @ResponseStatus(HttpStatus.NO_CONTENT)
     private static class AccountResourceException extends RuntimeException {
@@ -54,18 +57,18 @@ public class NkAccountResource {
         }
     }
 
-    private static final Logger log = LoggerFactory.getLogger(NkAccountResource.class);
+    private static final Logger log = LoggerFactory.getLogger(AccountResource.class);
 
     private static final String ENTITY_NAME = "nkAccount";
 
-    @Value("${ngelmak.clientApp.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     private final AccountService nkAccountService;
 
     private final NkAccountRepository nkAccountRepository;
 
-    public NkAccountResource(AccountService nkAccountService, NkAccountRepository nkAccountRepository) {
+    public AccountResource(AccountService nkAccountService, NkAccountRepository nkAccountRepository) {
         this.nkAccountService = nkAccountService;
         this.nkAccountRepository = nkAccountRepository;
     }
@@ -87,7 +90,7 @@ public class NkAccountResource {
             throw new BadRequestAlertException("A new nkAccount cannot already have an ID", ENTITY_NAME, "idexists");
         }
         NkAccount nkAccount = nkAccountService.save(nkAccountDTO);
-        return ResponseEntity.created(new URI("/truthline-ingres/accounts/" + nkAccount.getId()))
+        return ResponseEntity.created(new URI("/api/accounts/" + nkAccount.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         nkAccount.getId().toString()))
                 .body(nkAccount);
@@ -136,7 +139,7 @@ public class NkAccountResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<NkAccount> partialUpdateNkAccount(
+    public ResponseEntity<NkAccount> partialUpdateAccount(
             @PathVariable(value = "id", required = false) final Long id,
             @NotNull @RequestBody NkAccount nkAccount) throws URISyntaxException {
         log.debug("REST request to partial update NkAccount partially : {}, {}", id, nkAccount);
@@ -166,12 +169,30 @@ public class NkAccountResource {
      *         of nkAccounts in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<NkAccount>> getAllNkAccounts(Pageable pageable) {
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<List<NkAccount>> getAllAccounts(Pageable pageable) {
         log.debug("REST request to get a page of NkAccounts");
         Page<NkAccount> page = nkAccountService.findAll(pageable);
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(page, ServletUriComponentsBuilder.fromCurrentRequest().toString());
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /accounts/me} : get the connected user account.
+     *
+     * @param id the id of the nkAccount to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the nkAccount, or with status {@code 404 (Not Found)}.
+     */
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<NkAccount> personalAccount(Authentication authentication) {
+        log.debug("REST request to get connected Account");
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        log.info("​🦋 User details {}", principal);
+        Optional<NkAccount> nkAccount = nkAccountService.findOneByCurrentUser();
+        return ResponseUtil.wrapOrNotFound(nkAccount);
     }
 
     /**
@@ -182,23 +203,9 @@ public class NkAccountResource {
      *         the nkAccount, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<NkAccount> getNkAccount(@PathVariable("id") Long id) {
+    public ResponseEntity<NkAccount> getAccount(@PathVariable("id") Long id) {
         log.debug("REST request to get NkAccount : {}", id);
         Optional<NkAccount> nkAccount = nkAccountService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(nkAccount);
-    }
-
-    @GetMapping("/user/{id}")
-    public ResponseEntity<NkAccount> findByUser(@PathVariable("id") Long id) {
-        log.debug("REST request to get NkAccount by user id : {}", id);
-        Optional<NkAccount> nkAccount = nkAccountRepository.findOneByUser(id);
-        return ResponseUtil.wrapOrNotFound(nkAccount);
-    }
-
-    @GetMapping("/authicated-user")
-    public ResponseEntity<NkAccount> findByCurrentUser() {
-        log.debug("REST request to get NkAccount by current user");
-        Optional<NkAccount> nkAccount = nkAccountService.findOneByCurrentUser();
         return ResponseUtil.wrapOrNotFound(nkAccount);
     }
 
@@ -208,8 +215,25 @@ public class NkAccountResource {
      * @param id the id of the nkAccount to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> blockAccount(@PathVariable("id") Long id) {
+        log.debug("REST request to delete NkAccount : {}", id);
+        nkAccountService.delete(id);
+        return ResponseEntity.noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))
+                .build();
+    }
+
+    /**
+     * {@code DELETE  /accounts/:id} : delete the "id" nkAccount.
+     *
+     * @param id the id of the nkAccount to delete.
+     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNkAccount(@PathVariable("id") Long id) {
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteAccount(@PathVariable("id") Long id) {
         log.debug("REST request to delete NkAccount : {}", id);
         nkAccountService.delete(id);
         return ResponseEntity.noContent()

@@ -42,14 +42,14 @@ import jakarta.validation.constraints.NotNull;
  * REST controller for managing {@link org.ngelmakproject.domain.NkArticle}.
  */
 @RestController
-@RequestMapping("/truthline-ingres/articles")
+@RequestMapping("/api/articles")
 public class ArticleResource {
 
     private static final Logger log = LoggerFactory.getLogger(ArticleResource.class);
 
     private static final String ENTITY_NAME = "post";
 
-    @Value("${ngelmak.clientApp.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     private final ArticleService postService;
@@ -81,7 +81,7 @@ public class ArticleResource {
             throw new BadRequestAlertException("A new post cannot already have an ID", ENTITY_NAME, "idexists");
         }
         post = postService.save(post, attachments, files, posters);
-        return ResponseEntity.created(new URI("/truthline-ingres/posts/" + post.getId()))
+        return ResponseEntity.created(new URI("/api/posts/" + post.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         post.getId().toString()))
                 .body(post);

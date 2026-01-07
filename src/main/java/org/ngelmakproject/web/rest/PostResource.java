@@ -42,14 +42,14 @@ import jakarta.validation.constraints.NotNull;
  * REST controller for managing {@link org.ngelmakproject.domain.NkPost}.
  */
 @RestController
-@RequestMapping("/truthline-ingres/posts")
+@RequestMapping("/api/posts")
 public class PostResource {
 
     private static final Logger log = LoggerFactory.getLogger(PostResource.class);
 
     private static final String ENTITY_NAME = "post";
 
-    @Value("${ngelmak.clientApp.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     private final PostService postService;
@@ -80,7 +80,7 @@ public class PostResource {
             throw new BadRequestAlertException("A new post cannot already have an ID", ENTITY_NAME, "idexists");
         }
         post = postService.save(post, medias, covers);
-        return ResponseEntity.created(new URI("/truthline-ingres/posts/" + post.getId()))
+        return ResponseEntity.created(new URI("/api/posts/" + post.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         post.getId().toString()))
                 .body(post);
@@ -158,7 +158,7 @@ public class PostResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
      *         of posts in body.
      */
-    @GetMapping("")
+    @GetMapping("/r")
     public ResponseEntity<PageDTO<NkPost>> getAllPosts(@RequestParam(value = "q", defaultValue = "") String query,
             Pageable pageable) {
         log.debug("REST request to get a page of Posts : {}", query);
@@ -206,7 +206,7 @@ public class PostResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
      *         the post, or with status {@code 404 (Not Found)}.
      */
-    @GetMapping("/{id}")
+    @GetMapping("/r/{id}")
     public ResponseEntity<NkPost> getPost(@PathVariable("id") Long id) {
         log.debug("REST request to get NkPost : {}", id);
         Optional<NkPost> post = postService.findOne(id);

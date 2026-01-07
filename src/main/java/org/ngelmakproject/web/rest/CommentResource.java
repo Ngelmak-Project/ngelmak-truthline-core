@@ -36,14 +36,14 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  * REST controller for managing {@link org.ngelmakproject.domain.NkComment}.
  */
 @RestController
-@RequestMapping("/truthline-ingres/comments")
+@RequestMapping("/api/comments")
 public class CommentResource {
 
     private static final Logger log = LoggerFactory.getLogger(CommentResource.class);
 
     private static final String ENTITY_NAME = "comment";
 
-    @Value("${ngelmak.clientApp.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     private final CommentService commentService;
@@ -74,7 +74,7 @@ public class CommentResource {
             throw new BadRequestAlertException("A new comment cannot already have an ID", ENTITY_NAME, "idexists");
         }
         comment = commentService.save(comment, file);
-        return ResponseEntity.created(new URI("/truthline-ingres/comments/" + comment.getId()))
+        return ResponseEntity.created(new URI("/api/comments/" + comment.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         comment.getId().toString()))
                 .body(comment);
