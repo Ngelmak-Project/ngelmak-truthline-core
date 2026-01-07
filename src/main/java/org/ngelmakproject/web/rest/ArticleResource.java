@@ -169,13 +169,13 @@ public class ArticleResource {
     }
 
     /**
-     * {@code GET  /posts/nk-account/:id} : get all the posts.
+     * {@code GET  /posts/account/:id} : get all the posts.
      *
      * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
      *         of posts in body.
      */
-    @GetMapping("/nk-account/{id}")
+    @GetMapping("/account/{id}")
     public ResponseEntity<PageDTO<NkArticle>> getArticleByAccount(@PathVariable("id") Long id, Pageable pageable) {
         log.debug("REST request to get a page of Articles by NkAccount : {}", id);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))

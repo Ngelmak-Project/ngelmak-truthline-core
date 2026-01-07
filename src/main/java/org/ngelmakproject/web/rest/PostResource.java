@@ -158,7 +158,7 @@ public class PostResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
      *         of posts in body.
      */
-    @GetMapping("/r")
+    @GetMapping("")
     public ResponseEntity<PageDTO<NkPost>> getAllPosts(@RequestParam(value = "q", defaultValue = "") String query,
             Pageable pageable) {
         log.debug("REST request to get a page of Posts : {}", query);
@@ -167,13 +167,13 @@ public class PostResource {
     }
 
     /**
-     * {@code GET  /posts/nk-account/:id} : get all the posts.
+     * {@code GET  /posts/account/:id} : get all the posts.
      *
      * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
      *         of posts in body.
      */
-    @GetMapping("/nk-account/{id}")
+    @GetMapping("/account/{id}")
     public ResponseEntity<PageDTO<NkPost>> getPostByAccount(@PathVariable("id") Long id, Pageable pageable) {
         log.debug("REST request to get a page of Posts by NkAccount : {}", id);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
@@ -206,7 +206,7 @@ public class PostResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
      *         the post, or with status {@code 404 (Not Found)}.
      */
-    @GetMapping("/r/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<NkPost> getPost(@PathVariable("id") Long id) {
         log.debug("REST request to get NkPost : {}", id);
         Optional<NkPost> post = postService.findOne(id);
