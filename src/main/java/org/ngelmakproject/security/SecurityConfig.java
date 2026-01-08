@@ -22,12 +22,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll() // Authorization handled by @PreAuthorize
-            )
-            .addFilterBefore(gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .build();
+                .cors(cors -> cors.disable()) // Disable Spring Security CORS so Gateway handles it
+                .csrf(csrf -> csrf.disable()) // Disable CSRF protection (not needed for token-based APIs)
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll() // Authorization handled by @PreAuthorize
+                )
+                .addFilterBefore(gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 }
-
