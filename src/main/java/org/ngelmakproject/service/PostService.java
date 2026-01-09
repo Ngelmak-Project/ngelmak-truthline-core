@@ -8,13 +8,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.ngelmakproject.domain.NkAccount;
+import org.ngelmakproject.domain.NkComment;
 import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.PostRepository;
 import org.ngelmakproject.web.rest.dto.PageDTO;
+import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
+import org.ngelmakproject.web.rest.errors.ResourceNotFoundException;
+import org.ngelmakproject.web.rest.errors.UnauthorizedResourceAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +48,11 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
     @Autowired
+    private CommentService commentService;
+    @Autowired
     private FileService fileService;
     @Autowired
-    private AccountService nkAccountService;
+    private AccountService accountService;
 
     @Autowired
     private EntityManager entityManager;
@@ -58,17 +64,18 @@ public class PostService {
      * @return the persisted entity.
      */
     public NkPost save(NkPost post, List<MultipartFile> medias, List<MultipartFile> covers) {
-        log.debug("Request to save NkPost : {}", post);
-        // [TODO] we will need to change the default status to match with the fact that
-        // some users can create posts that bypass some step validations.
-        post.status(Status.VALIDATED) // default status is PENDING
-                .at(Instant.now()) // set the current time
-                .account(nkAccountService.findByCurrentUser()); // set the current connected user as
-                                                                // creater of the post.
-        post = postRepository.save(post);
-        List<NkFile> files = fileService.save(medias, covers);
-        post.setFiles(new HashSet<NkFile>(files));
-        return post;
+        log.debug("Request to save Post : {}", post);
+        return accountService.findOneByCurrentUser().map(account -> {
+            // [TODO] we will need to change the default status to match with the fact that
+            // some users can create posts that bypass some step validations.
+            post.status(Status.VALIDATED) // default status is PENDING
+                    .at(Instant.now()) // set the current time
+                    .account(account); // set the current connected user as owner of the post.
+            var newpost = postRepository.save(post);
+            List<NkFile> files = fileService.save(medias, covers);
+            newpost.setFiles(new HashSet<NkFile>(files));
+            return newpost;
+        }).orElseThrow(AccountNotFoundException::new);
     }
 
     /**
@@ -82,13 +89,45 @@ public class PostService {
      */
     public NkPost update(NkPost post, List<NkFile> deletedMedias,
             List<MultipartFile> medias, List<MultipartFile> covers) throws IOException {
-        log.debug("Request to update NkPost : {}", post);
+        log.debug("Request to update Post : {}", post);
         if (post.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
         if (!postRepository.existsById(post.getId())) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+            throw new ResourceNotFoundException("Entity not found", ENTITY_NAME, "idnotfound");
         }
+        postRepository.findById(post.getId())
+                .map(existingPost -> {
+                    var account = accountService.findOneByCurrentUser().orElseThrow(AccountNotFoundException::new);
+
+                    if (account.getId() != existingPost.getAccount().getId())
+                        throw new UnauthorizedResourceAccessException(account.getUser(), existingPost.getId(),
+                                ENTITY_NAME);
+                                
+                    if (post.getKeywords() != null) {
+                        existingPost.setKeywords(post.getKeywords());
+                    }
+                    if (post.getAt() != null) {
+                        existingPost.setAt(post.getAt());
+                    }
+                    if (post.getLastUpdate() != null) {
+                        existingPost.setLastUpdate(post.getLastUpdate());
+                    }
+                    if (post.getVisibility() != null) {
+                        existingPost.setVisibility(post.getVisibility());
+                    }
+                    if (post.getContent() != null) {
+                        existingPost.setContent(post.getContent());
+                    }
+                    if (post.getStatus() != null) {
+                        existingPost.setStatus(post.getStatus());
+                    }
+
+                    return existingPost;
+                })
+                .map(postRepository::save)
+                .orElseThrow(() -> new ResourceNotFoundException("Entity not found", ENTITY_NAME, "idnotfound"));
+
         // post.setStatus(Status.PENDING);
         post.setStatus(Status.VALIDATED);
         post.setLastUpdate(Instant.now());
@@ -109,7 +148,7 @@ public class PostService {
      * @return the persisted entity.
      */
     public Optional<NkPost> partialUpdate(NkPost post) {
-        log.debug("Request to partially update NkPost : {}", post);
+        log.debug("Request to partially update Post : {}", post);
 
         return postRepository
                 .findById(post.getId())
@@ -150,7 +189,13 @@ public class PostService {
         if (query.length() > 5) {
             return fullTextSearch(query, pageable);
         }
-        return new PageDTO<>(postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable));
+        Page<NkPost> page = postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
+
+        List<NkComment> comments = commentService.findTopComments(page.getContent(), 10);
+        page.getContent().stream().forEach(p -> {
+            p.setComments(comments.stream().filter(c -> c.getPost().equals(p)).collect(Collectors.toSet()));
+        });
+        return new PageDTO<>(page);
     }
 
     /**
@@ -161,7 +206,7 @@ public class PostService {
      */
     @Transactional(readOnly = true)
     public Optional<NkPost> findOne(Long id) {
-        log.debug("Request to get NkPost : {}", id);
+        log.debug("Request to get Post : {}", id);
         return postRepository.findById(id).map(existingPost -> {
             existingPost.getFiles().removeIf(e -> e.getDeletedAt() != null);
             return existingPost;
@@ -174,7 +219,7 @@ public class PostService {
      * @param id the id of the entity.
      */
     public void delete(Long id) {
-        log.debug("Request to delete NkPost : {}", id);
+        log.debug("Request to delete Post : {}", id);
         throw new RuntimeException("Not Implemented...");
         // postRepository.deleteById(id);
     }

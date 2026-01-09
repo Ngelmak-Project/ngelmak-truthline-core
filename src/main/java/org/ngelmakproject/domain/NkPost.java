@@ -71,7 +71,7 @@ public class NkPost implements Serializable {
     @JsonIncludeProperties(value = { "id", "content" })
     private NkPost postReply;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @NotNull
     @JsonIncludeProperties(value = { "id", "identifier", "name", "avatar" })
     private NkAccount account;
@@ -90,7 +90,7 @@ public class NkPost implements Serializable {
     @JsonIgnore
     private Set<NkTicket> reports = new HashSet<>();
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "post")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "post")
     @JsonIncludeProperties(value = { "id" })
     private Set<NkComment> comments = new HashSet<>();
 

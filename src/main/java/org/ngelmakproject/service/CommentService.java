@@ -3,10 +3,12 @@ package org.ngelmakproject.service;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkAccount;
 import org.ngelmakproject.domain.NkComment;
+import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Opinion;
 import org.ngelmakproject.repository.CommentRepository;
 import org.ngelmakproject.service.storage.FileStorageService;
@@ -59,7 +61,7 @@ public class CommentService {
      */
     public NkComment save(NkComment comment, MultipartFile file) throws MalformedURLException {
         log.debug("Request to save NkComment : {}", comment);
-        NkAccount nkAccount = nkAccountService.findByCurrentUser();
+        NkAccount nkAccount = nkAccountService.findOneByCurrentUser().get();
         if (comment.getOpinion() == null)
             comment.setOpinion(Opinion.DEFAULT);
         comment.account(nkAccount).setAt(Instant.now());
@@ -120,6 +122,12 @@ public class CommentService {
     public Page<NkComment> findAll(Pageable pageable) {
         log.debug("Request to get all Comments");
         return commentRepository.findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NkComment> findTopComments(List<NkPost> posts, int limit) {
+        log.debug("Request to get all Comments");
+        return commentRepository.findTopCommentsForPosts(posts.stream().map(NkPost::getId).toList(), limit);
     }
 
     /**

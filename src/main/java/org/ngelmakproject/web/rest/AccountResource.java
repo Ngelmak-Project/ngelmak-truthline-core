@@ -10,8 +10,8 @@ import org.ngelmakproject.domain.NkAccount;
 import org.ngelmakproject.repository.NkAccountRepository;
 import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.AccountService;
-import org.ngelmakproject.web.rest.dto.AccountDTO;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
+import org.ngelmakproject.web.rest.errors.UnauthorizedResourceAccessException;
 import org.ngelmakproject.web.rest.util.HeaderUtil;
 import org.ngelmakproject.web.rest.util.PaginationUtil;
 import org.ngelmakproject.web.rest.util.ResponseUtil;
@@ -59,120 +59,127 @@ public class AccountResource {
 
     private static final Logger log = LoggerFactory.getLogger(AccountResource.class);
 
-    private static final String ENTITY_NAME = "nkAccount";
+    private static final String ENTITY_NAME = "account";
 
     @Value("${spring.application.name}")
     private String applicationName;
 
-    private final AccountService nkAccountService;
+    private final AccountService accountService;
 
-    private final NkAccountRepository nkAccountRepository;
+    private final NkAccountRepository accountRepository;
 
-    public AccountResource(AccountService nkAccountService, NkAccountRepository nkAccountRepository) {
-        this.nkAccountService = nkAccountService;
-        this.nkAccountRepository = nkAccountRepository;
+    public AccountResource(AccountService accountService, NkAccountRepository accountRepository) {
+        this.accountService = accountService;
+        this.accountRepository = accountRepository;
     }
 
     /**
-     * {@code POST  /accounts} : Create a new nkAccount.
+     * {@code POST  /accounts} : Create a new account.
      *
-     * @param nkAccount the nkAccount to create.
+     * @param account the account to create.
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
-     *         body the new nkAccount, or with status {@code 400 (Bad Request)} if
-     *         the nkAccount has already an ID.
+     *         body the new account, or with status {@code 400 (Bad Request)} if
+     *         the account has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<NkAccount> createNkAccount(@Valid @RequestBody AccountDTO nkAccountDTO)
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<NkAccount> createAccount(Authentication authentication,
+            @Valid @RequestBody NkAccount account)
             throws URISyntaxException {
-        log.debug("REST request to save NkAccount : {}", nkAccountDTO);
-        if (nkAccountDTO.getId() != null) {
-            throw new BadRequestAlertException("A new nkAccount cannot already have an ID", ENTITY_NAME, "idexists");
+        log.debug("REST request to save Account : {}", account);
+        if (account.getId() != null) {
+            throw new BadRequestAlertException("A new account cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        NkAccount nkAccount = nkAccountService.save(nkAccountDTO);
-        return ResponseEntity.created(new URI("/api/accounts/" + nkAccount.getId()))
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        if (account.getUser() != null && account.getUser() != principal.getUserId()) {
+            throw new UnauthorizedResourceAccessException(principal.getUserId(), account.getId(), ENTITY_NAME);
+        }
+        account.setUser(principal.getUserId());
+        var newAccount = accountService.save(account);
+        return ResponseEntity.created(new URI("/api/accounts/" + newAccount.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
-                        nkAccount.getId().toString()))
-                .body(nkAccount);
+                        newAccount.getId().toString()))
+                .body(newAccount);
     }
 
     /**
-     * {@code PUT  /accounts/:id} : Updates an existing nkAccount.
+     * {@code PUT  /accounts/:id} : Updates an existing account.
      *
-     * @param id        the id of the nkAccount to save.
-     * @param nkAccount the nkAccount to update.
+     * @param id      the id of the account to save.
+     * @param account the account to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the updated nkAccount,
-     *         or with status {@code 400 (Bad Request)} if the nkAccount is not
+     *         the updated account,
+     *         or with status {@code 400 (Bad Request)} if the account is not
      *         valid,
-     *         or with status {@code 500 (Internal Server Error)} if the nkAccount
+     *         or with status {@code 500 (Internal Server Error)} if the account
      *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("")
-    public ResponseEntity<NkAccount> updateNkAccount(
-            @Valid @RequestBody NkAccount nkAccount) throws URISyntaxException {
-        log.debug("REST request to update NkAccount : {}", nkAccount);
-        if (nkAccount.getId() == null) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<NkAccount> updateAccount(@Valid @RequestBody NkAccount account) throws URISyntaxException {
+        log.debug("REST request to update Account : {}", account);
+        if (account.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        nkAccount = nkAccountService.update(nkAccount);
+        var newAccount = accountService.update(account);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME,
-                        nkAccount.getId().toString()))
-                .body(nkAccount);
+                        newAccount.getId().toString()))
+                .body(newAccount);
     }
 
     /**
      * {@code PATCH  /accounts/:id} : Partial updates given fields of an existing
-     * nkAccount, field will ignore if it is null
+     * account, field will ignore if it is null
      *
-     * @param id        the id of the nkAccount to save.
-     * @param nkAccount the nkAccount to update.
+     * @param id      the id of the account to save.
+     * @param account the account to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the updated nkAccount,
-     *         or with status {@code 400 (Bad Request)} if the nkAccount is not
+     *         the updated account,
+     *         or with status {@code 400 (Bad Request)} if the account is not
      *         valid,
-     *         or with status {@code 404 (Not Found)} if the nkAccount is not found,
-     *         or with status {@code 500 (Internal Server Error)} if the nkAccount
+     *         or with status {@code 404 (Not Found)} if the account is not found,
+     *         or with status {@code 500 (Internal Server Error)} if the account
      *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<NkAccount> partialUpdateAccount(
             @PathVariable(value = "id", required = false) final Long id,
-            @NotNull @RequestBody NkAccount nkAccount) throws URISyntaxException {
-        log.debug("REST request to partial update NkAccount partially : {}, {}", id, nkAccount);
-        if (nkAccount.getId() == null) {
+            @NotNull @RequestBody NkAccount account) throws URISyntaxException {
+        log.debug("REST request to partial update NkAccount partially : {}, {}", id, account);
+        if (account.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, nkAccount.getId())) {
+        if (!Objects.equals(id, account.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        if (!nkAccountRepository.existsById(id)) {
+        if (!accountRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<NkAccount> result = nkAccountService.partialUpdate(nkAccount);
+        Optional<NkAccount> result = accountService.partialUpdate(account);
 
         return ResponseUtil.wrapOrNotFound(
                 result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, nkAccount.getId().toString()));
+                HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, account.getId().toString()));
     }
 
     /**
-     * {@code GET  /accounts} : get all the nkAccounts.
+     * {@code GET  /accounts} : get all the accounts.
      *
      * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
-     *         of nkAccounts in body.
+     *         of accounts in body.
      */
     @GetMapping("")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<NkAccount>> getAllAccounts(Pageable pageable) {
         log.debug("REST request to get a page of NkAccounts");
-        Page<NkAccount> page = nkAccountService.findAll(pageable);
+        Page<NkAccount> page = accountService.findAll(pageable);
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(page, ServletUriComponentsBuilder.fromCurrentRequest().toString());
         return ResponseEntity.ok().headers(headers).body(page.getContent());
@@ -181,9 +188,9 @@ public class AccountResource {
     /**
      * {@code GET  /accounts/me} : get the connected user account.
      *
-     * @param id the id of the nkAccount to retrieve.
+     * @param id the id of the account to retrieve.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the nkAccount, or with status {@code 404 (Not Found)}.
+     *         the account, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
@@ -191,51 +198,51 @@ public class AccountResource {
         log.debug("REST request to get connected Account");
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
         log.info("​🦋 User details {}", principal);
-        Optional<NkAccount> nkAccount = nkAccountService.findOneByCurrentUser();
-        return ResponseUtil.wrapOrNotFound(nkAccount);
+        Optional<NkAccount> account = accountService.findOneByCurrentUser();
+        return ResponseUtil.wrapOrNotFound(account);
     }
 
     /**
-     * {@code GET  /accounts/:id} : get the "id" nkAccount.
+     * {@code GET  /accounts/:id} : get the "id" account.
      *
-     * @param id the id of the nkAccount to retrieve.
+     * @param id the id of the account to retrieve.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the nkAccount, or with status {@code 404 (Not Found)}.
+     *         the account, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
     public ResponseEntity<NkAccount> getAccount(@PathVariable("id") Long id) {
-        log.debug("REST request to get NkAccount : {}", id);
-        Optional<NkAccount> nkAccount = nkAccountService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(nkAccount);
+        log.debug("REST request to get Account : {}", id);
+        Optional<NkAccount> account = accountService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(account);
     }
 
     /**
-     * {@code DELETE  /accounts/:id} : delete the "id" nkAccount.
+     * {@code DELETE  /accounts/:id} : delete the "id" account.
      *
-     * @param id the id of the nkAccount to delete.
+     * @param id the id of the account to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> blockAccount(@PathVariable("id") Long id) {
-        log.debug("REST request to delete NkAccount : {}", id);
-        nkAccountService.delete(id);
+        log.debug("REST request to delete Account : {}", id);
+        accountService.delete(id);
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))
                 .build();
     }
 
     /**
-     * {@code DELETE  /accounts/:id} : delete the "id" nkAccount.
+     * {@code DELETE  /accounts/:id} : delete the "id" account.
      *
-     * @param id the id of the nkAccount to delete.
+     * @param id the id of the account to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteAccount(@PathVariable("id") Long id) {
-        log.debug("REST request to delete NkAccount : {}", id);
-        nkAccountService.delete(id);
+        log.debug("REST request to delete Account : {}", id);
+        accountService.delete(id);
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))
                 .build();
@@ -252,7 +259,7 @@ public class AccountResource {
     // @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.USER + "\")")
     public ResponseEntity<NkAccount> updateAvatar(@RequestParam("file") MultipartFile file) {
         log.debug("REST request to upload the user's account avatar");
-        return ResponseEntity.ok().body(nkAccountService.updateAvatar(file));
+        return ResponseEntity.ok().body(accountService.updateAvatar(file));
     }
 
     /**
@@ -266,6 +273,6 @@ public class AccountResource {
     // @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.USER + "\")")
     public ResponseEntity<NkAccount> updateBanner(@RequestParam("file") MultipartFile file) {
         log.debug("REST request to upload the user's account banner");
-        return ResponseEntity.ok().body(nkAccountService.updateBanner(file));
+        return ResponseEntity.ok().body(accountService.updateBanner(file));
     }
 }

@@ -65,7 +65,7 @@ public class ArticleService {
         log.debug("Request to save NkArticle : {}", article);
         article.setStatus(Status.VALIDATED); // default status is PENDING
         article.setAt(Instant.now()); // set the current time
-        article.setAccount(nkAccountService.findByCurrentUser()); // set the current connected user as
+        article.setAccount(nkAccountService.findOneByCurrentUser().get()); // set the current connected user as
                                                                 // creater of the article.
         article = articleRepository.save(article);
         attachments = attachmentService.save(article, attachments, files, articleers);

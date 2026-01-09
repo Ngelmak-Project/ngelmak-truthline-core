@@ -13,7 +13,6 @@ import org.ngelmakproject.repository.MembershipRepository;
 import org.ngelmakproject.repository.NkAccountRepository;
 import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.storage.FileStorageService;
-import org.ngelmakproject.web.rest.dto.AccountDTO;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
@@ -57,19 +56,9 @@ public class AccountService {
      * @param account the entity to save.
      * @return the persisted entity.
      */
-    public NkAccount save(AccountDTO accountDTO) {
-        log.info("Request to save NkAccount : {}", accountDTO);
-
-        // NkUser currentUser = userService.getUserWithAuthorities()
-        // .orElseThrow(() -> new BadRequestAlertException("A new should always be
-        // attach to a user", ENTITY_NAME,
-        // "userNotFound"));
-
-        NkAccount account = new NkAccount()
-                .createdAt(Instant.now())
-                .name(accountDTO.getName())
-                .visibility(accountDTO.getVisibility())
-                .user(0l); // [TODO]: retrieve the current user id
+    public NkAccount save(NkAccount account) {
+        log.info("Request to save Account : {}", account);
+        account.createdAt(Instant.now());
         NkConfig defaultConfig = new NkConfig();
         defaultConfig.lastUpdate(Instant.now());
         defaultConfig.defaultAccessibility(Accessibility.DEFAULT);
@@ -86,11 +75,37 @@ public class AccountService {
      * @return the persisted entity.
      */
     public NkAccount update(NkAccount account) {
-        log.debug("Request to update NkAccount : {}", account);
+        log.debug("Request to update Account : {}", account);
         if (!accountRepository.existsById(account.getId())) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
-        return accountRepository.save(account);
+
+        return findOneByCurrentUser().map(existingNkAccount -> {
+            if (account.getIdentifier() != null) {
+                existingNkAccount.setIdentifier(account.getIdentifier());
+            }
+            if (account.getName() != null) {
+                existingNkAccount.setName(account.getName());
+            }
+            if (account.getAvatar() != null) {
+                existingNkAccount.setAvatar(account.getAvatar());
+            }
+            if (account.getBanner() != null) {
+                existingNkAccount.setBanner(account.getBanner());
+            }
+            if (account.getVisibility() != null) {
+                existingNkAccount.setVisibility(account.getVisibility());
+            }
+            if (account.getCreatedAt() != null) {
+                existingNkAccount.setCreatedAt(account.getCreatedAt());
+            }
+            if (account.getDescription() != null) {
+                existingNkAccount.setDescription(account.getDescription());
+            }
+
+            return existingNkAccount;
+        }).map(accountRepository::save)
+        .orElseThrow(AccountNotFoundException::new);
     }
 
     /**
@@ -168,17 +183,6 @@ public class AccountService {
                 .getPrincipal())
                 .getUserId();
         return accountRepository.findOneByUser(userId);
-    }
-
-    /**
-     * Get one account by id.
-     *
-     * @param id the id of the entity.
-     * @return the entity.
-     */
-    @Transactional(readOnly = true)
-    public NkAccount findByCurrentUser() {
-        return accountRepository.findOneByUser(null).orElseThrow(AccountNotFoundException::new);
     }
 
     /**

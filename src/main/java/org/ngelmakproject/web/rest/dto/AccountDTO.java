@@ -1,7 +1,6 @@
 package org.ngelmakproject.web.rest.dto;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 
 import org.ngelmakproject.domain.enumeration.Accessibility;
 
@@ -25,12 +24,8 @@ public class AccountDTO implements Serializable {
     @NotNull
     private String name;
 
-    private String foregroundPicture;
-
-    private String backgroundPicture;
-
     private Accessibility visibility;
 
-    private ZonedDateTime createdAt;
+    private Long userId;
 
 }
