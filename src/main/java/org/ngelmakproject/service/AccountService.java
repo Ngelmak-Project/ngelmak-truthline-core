@@ -76,9 +76,6 @@ public class AccountService {
      */
     public NkAccount update(NkAccount account) {
         log.debug("Request to update Account : {}", account);
-        if (!accountRepository.existsById(account.getId())) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
 
         return findOneByCurrentUser().map(existingNkAccount -> {
             if (account.getIdentifier() != null) {
