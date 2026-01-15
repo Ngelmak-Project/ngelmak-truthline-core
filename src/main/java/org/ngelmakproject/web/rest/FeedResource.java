@@ -55,9 +55,9 @@ public class FeedResource {
             Pageable pageable) {
         log.debug("REST request to get a page of Feeds : {}", query);
 
-        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
         PageDTO<NkFeed> pageDTO;
-        if (principal != null) {
+        if (authentication != null) {
+            UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
             pageDTO = feedService.getFeed(principal.getUserId(), pageable);
         } else {
             pageDTO = feedService.getFeed(pageable);
