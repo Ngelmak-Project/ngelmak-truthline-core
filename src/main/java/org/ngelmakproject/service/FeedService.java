@@ -70,6 +70,19 @@ public class FeedService {
         return new PageDTO<>(page);
     }
 
+    public PageDTO<NkFeed> getFeed(Pageable pageable) {
+        log.debug("Request to retrieve Feeds any user.");
+        // Get recommended posts (assuming a method to fetch recommendations)
+        List<NkFeed> recommendedPosts = getRecommendedPosts(null, pageable).getContent();
+        List<NkFeed> allFeeds = new ArrayList<>();
+        allFeeds.addAll(recommendedPosts);
+        allFeeds.sort((a, b) -> {
+            return -1 * a.getPost().getAt().compareTo(b.getPost().getAt());
+        });
+        Page<NkFeed> page = new PageImpl<>(allFeeds, pageable, allFeeds.size());
+        return new PageDTO<>(page);
+    }
+
     /**
      * [TODO]
      * To fetch recommended posts, you can integrate a recommendation engine or
