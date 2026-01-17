@@ -62,7 +62,9 @@ public class FeedService {
     }
 
     public PageDTO<NkFeed> getFeed(Pageable pageable) {
+        System.out.println("========1.");
         Optional<NkAccount> optional = accountService.findOneByCurrentUser();
+        System.out.println("========2.");
         List<NkFeed> allFeeds = new ArrayList<>();
         List<NkFeed> recommendedPosts;
         if (optional.isPresent()) {
