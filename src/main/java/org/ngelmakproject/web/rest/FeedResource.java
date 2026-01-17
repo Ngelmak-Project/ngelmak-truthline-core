@@ -4,7 +4,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.ngelmakproject.domain.NkFeed;
 import org.ngelmakproject.repository.FeedRepository;
-import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.FeedService;
 import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.slf4j.Logger;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,17 +49,11 @@ public class FeedResource {
      */
     @GetMapping("")
     public ResponseEntity<PageDTO<NkFeed>> getFeeds(@RequestParam(value = "q", defaultValue = "") String query,
-            Authentication authentication,
             Pageable pageable) {
         log.debug("REST request to get a page of Feeds : {}", query);
 
         PageDTO<NkFeed> pageDTO;
-        if (authentication != null) {
-            UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-            pageDTO = feedService.getFeed(principal.getUserId(), pageable);
-        } else {
-            pageDTO = feedService.getFeed(pageable);
-        }
+        pageDTO = feedService.getFeed(pageable);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
                 .body(pageDTO);
     }

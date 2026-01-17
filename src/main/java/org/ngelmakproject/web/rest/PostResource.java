@@ -70,7 +70,7 @@ public class PostResource {
             @RequestPart(required = false) List<MultipartFile> medias,
             @RequestPart(required = false) List<MultipartFile> covers)
             throws URISyntaxException {
-        log.debug("REST request to save NkPost : {}", post);
+        log.debug("REST request to save Post : {}", post);
         if (post.getId() != null) {
             throw new BadRequestAlertException("A new post cannot already have an ID", ENTITY_NAME, "idexists");
         }
@@ -101,7 +101,7 @@ public class PostResource {
             @RequestPart(required = false) List<MultipartFile> medias,
             @RequestPart(required = false) List<MultipartFile> covers)
             throws URISyntaxException, IOException {
-        log.debug("REST request to update NkPost : {}", post);
+        log.debug("REST request to update Post : {}", post);
         post = postService.update(post, deletedFiles, medias, covers);
         return ResponseEntity.ok()
                 .headers(
@@ -151,7 +151,7 @@ public class PostResource {
     // String
     // query,
     // Pageable pageable) {
-    // log.debug("REST request to search NkPost : {}", query);
+    // log.debug("REST request to search Post : {}", query);
     // return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60,
     // TimeUnit.SECONDS))
     // .body(postService.fullTextSearch(query, pageable));
@@ -166,7 +166,7 @@ public class PostResource {
      */
     @GetMapping("/{id}")
     public ResponseEntity<NkPost> getPost(@PathVariable("id") Long id) {
-        log.debug("REST request to get NkPost : {}", id);
+        log.debug("REST request to get Post : {}", id);
         Optional<NkPost> post = postService.findOne(id);
         return ResponseUtil.wrapOrNotFound(post);
     }
@@ -179,7 +179,7 @@ public class PostResource {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable("id") Long id) {
-        log.debug("REST request to delete NkPost : {}", id);
+        log.debug("REST request to delete Post : {}", id);
         postService.delete(id);
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))
