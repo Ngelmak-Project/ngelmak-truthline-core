@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkAccount;
-import org.ngelmakproject.repository.NkAccountRepository;
+import org.ngelmakproject.repository.AccountRepository;
 import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.AccountService;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
@@ -66,9 +66,9 @@ public class AccountResource {
 
     private final AccountService accountService;
 
-    private final NkAccountRepository accountRepository;
+    private final AccountRepository accountRepository;
 
-    public AccountResource(AccountService accountService, NkAccountRepository accountRepository) {
+    public AccountResource(AccountService accountService, AccountRepository accountRepository) {
         this.accountService = accountService;
         this.accountRepository = accountRepository;
     }

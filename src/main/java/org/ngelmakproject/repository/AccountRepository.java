@@ -11,6 +11,9 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface NkAccountRepository extends JpaRepository<NkAccount, Long> {
+public interface AccountRepository extends JpaRepository<NkAccount, Long> {
     Optional<NkAccount> findOneByUser(Long id);
+
+    Boolean existsByIdentifier(String identifier);
+
 }

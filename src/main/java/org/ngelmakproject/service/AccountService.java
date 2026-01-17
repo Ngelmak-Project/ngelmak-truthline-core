@@ -9,12 +9,11 @@ import org.ngelmakproject.domain.NkConfig;
 import org.ngelmakproject.domain.NkMembership;
 import org.ngelmakproject.domain.enumeration.Accessibility;
 import org.ngelmakproject.domain.enumeration.Visibility;
+import org.ngelmakproject.repository.AccountRepository;
 import org.ngelmakproject.repository.MembershipRepository;
-import org.ngelmakproject.repository.NkAccountRepository;
 import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.storage.FileStorageService;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
-import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,7 @@ public class AccountService {
 
     private static final Logger log = LoggerFactory.getLogger(AccountService.class);
 
-    private final NkAccountRepository accountRepository;
+    private final AccountRepository accountRepository;
 
     @Autowired
     private MembershipRepository membershipRepository;
@@ -46,7 +45,7 @@ public class AccountService {
     @Autowired
     private FileStorageService fileStorageService;
 
-    public AccountService(NkAccountRepository accountRepository) {
+    public AccountService(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
     }
 
@@ -58,7 +57,18 @@ public class AccountService {
      */
     public NkAccount save(NkAccount account) {
         log.info("Request to save Account : {}", account);
-        account.createdAt(Instant.now());
+        /* 1. account creation */
+        String identifier = account.getName().toLowerCase().trim()
+                .replaceAll("[^a-z0-9]+", "-") // replace groups of non-alphanumerics
+                .replaceAll("^-|-$", ""); // remove leading/trailing hyphens
+        int counter = 1;
+        String base = identifier;
+        while (accountRepository.existsByIdentifier(identifier)) {
+            identifier = base + "-" + counter++;
+        }
+        account.identifier(identifier).createdAt(Instant.now());
+
+        /* 2. default config for the account */
         NkConfig defaultConfig = new NkConfig();
         defaultConfig.lastUpdate(Instant.now());
         defaultConfig.defaultAccessibility(Accessibility.DEFAULT);
@@ -102,7 +112,7 @@ public class AccountService {
 
             return existingNkAccount;
         }).map(accountRepository::save)
-        .orElseThrow(AccountNotFoundException::new);
+                .orElseThrow(AccountNotFoundException::new);
     }
 
     /**

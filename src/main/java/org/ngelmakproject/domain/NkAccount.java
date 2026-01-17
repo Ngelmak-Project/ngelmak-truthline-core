@@ -41,18 +41,21 @@ public class NkAccount implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    /* NkUser that own the account */
+    /* User (auth-service) that own the account */
     @Column(name = "user_id", unique = true, nullable = false)
     private Long user;
 
-    // @NotNull
-    // @NotBlank
+    /**
+     * A string or code used in URLs
+     * /account/acme-corp
+     * identifier = "acme-corp"
+     */
     @Column(name = "identifier", length = 30, unique = true)
     private String identifier;
 
     @NotNull
     @NotBlank
-    @Column(name = "name", length = 100, unique = true)
+    @Column(name = "name", length = 100)
     private String name;
 
     @Column(name = "description", length = 1000)
