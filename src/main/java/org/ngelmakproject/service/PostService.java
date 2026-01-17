@@ -1,6 +1,5 @@
 package org.ngelmakproject.service;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
@@ -66,15 +65,16 @@ public class PostService {
     public NkPost save(NkPost post, List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to save Post : {}", post);
         return accountService.findOneByCurrentUser().map(account -> {
+            /* 1. we start by saving the files if exists */
+            List<NkFile> files = fileService.save(medias, covers);
+            /* 2. then save the post with the attachments */
             // [TODO] we will need to change the default status to match with the fact that
             // some users can create posts that bypass some step validations.
             post.status(Status.VALIDATED) // default status is PENDING
                     .at(Instant.now()) // set the current time
+                    .files(new HashSet<NkFile>(files)) // attach files to the post
                     .account(account); // set the current connected user as owner of the post.
-            var newpost = postRepository.save(post);
-            List<NkFile> files = fileService.save(medias, covers);
-            newpost.setFiles(new HashSet<NkFile>(files));
-            return newpost;
+            return postRepository.save(post);
         }).orElseThrow(AccountNotFoundException::new);
     }
 
@@ -85,96 +85,54 @@ public class PostService {
      *
      * @param post the entity to save.
      * @return the persisted entity.
-     * @throws IOException
      */
     public NkPost update(NkPost post, List<NkFile> deletedMedias,
-            List<MultipartFile> medias, List<MultipartFile> covers) throws IOException {
+            List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to update Post : {}", post);
         if (post.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!postRepository.existsById(post.getId())) {
-            throw new ResourceNotFoundException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
-        postRepository.findById(post.getId())
-                .map(existingPost -> {
-                    var account = accountService.findOneByCurrentUser().orElseThrow(AccountNotFoundException::new);
+        return accountService.findOneByCurrentUser().map(account -> {
+            return postRepository.findById(post.getId())
+                    .map(existingPost -> {
+                        if (account.getId() != existingPost.getAccount().getId()) {
+                            throw new UnauthorizedResourceAccessException(account.getUser(), existingPost.getId(),
+                                    ENTITY_NAME);
+                        }
 
-                    if (account.getId() != existingPost.getAccount().getId())
-                        throw new UnauthorizedResourceAccessException(account.getUser(), existingPost.getId(),
-                                ENTITY_NAME);
-                                
-                    if (post.getKeywords() != null) {
-                        existingPost.setKeywords(post.getKeywords());
-                    }
-                    if (post.getAt() != null) {
-                        existingPost.setAt(post.getAt());
-                    }
-                    if (post.getLastUpdate() != null) {
-                        existingPost.setLastUpdate(post.getLastUpdate());
-                    }
-                    if (post.getVisibility() != null) {
-                        existingPost.setVisibility(post.getVisibility());
-                    }
-                    if (post.getContent() != null) {
-                        existingPost.setContent(post.getContent());
-                    }
-                    if (post.getStatus() != null) {
-                        existingPost.setStatus(post.getStatus());
-                    }
+                        /* 1. we start by saving the files if exists */
+                        List<NkFile> files = fileService.save(medias, covers);
+                        /* 2. update the existing post */
+                        existingPost.getFiles().addAll(files);
+                        if (post.getKeywords() != null) {
+                            existingPost.setKeywords(post.getKeywords());
+                        }
+                        if (post.getAt() != null) {
+                            existingPost.setAt(post.getAt());
+                        }
+                        if (post.getLastUpdate() != null) {
+                            existingPost.setLastUpdate(post.getLastUpdate());
+                        }
+                        if (post.getVisibility() != null) {
+                            existingPost.setVisibility(post.getVisibility());
+                        }
+                        if (post.getContent() != null) {
+                            existingPost.setContent(post.getContent());
+                        }
+                        if (post.getStatus() != null) {
+                            existingPost.setStatus(post.getStatus());
+                        }
+                        postRepository.save(existingPost);
+                        /* 3. delete removed files */
+                        // [WARN] make sure to delete files only when all other actions are
+                        // successfully completed. Since the deleted actions of file may have
+                        // actions that cannot be cancelled, like removing files.
+                        fileService.delete(deletedMedias);
 
-                    return existingPost;
-                })
-                .map(postRepository::save)
-                .orElseThrow(() -> new ResourceNotFoundException("Entity not found", ENTITY_NAME, "idnotfound"));
-
-        // post.setStatus(Status.PENDING);
-        post.setStatus(Status.VALIDATED);
-        post.setLastUpdate(Instant.now());
-        this.partialUpdate(post);
-        List<NkFile> files = fileService.save(medias, covers);
-        // [WARN] make sure to delete files only when all other actions are
-        // successfully completed. Since the deleted actions of file may have
-        // actions that cannot be cancelled, like removing files.
-        fileService.delete(deletedMedias);
-        post.setFiles(new HashSet<NkFile>(files));
-        return post;
-    }
-
-    /**
-     * Partially update a post.
-     *
-     * @param post the entity to update partially.
-     * @return the persisted entity.
-     */
-    public Optional<NkPost> partialUpdate(NkPost post) {
-        log.debug("Request to partially update Post : {}", post);
-
-        return postRepository
-                .findById(post.getId())
-                .map(existingPost -> {
-                    if (post.getKeywords() != null) {
-                        existingPost.setKeywords(post.getKeywords());
-                    }
-                    if (post.getAt() != null) {
-                        existingPost.setAt(post.getAt());
-                    }
-                    if (post.getLastUpdate() != null) {
-                        existingPost.setLastUpdate(post.getLastUpdate());
-                    }
-                    if (post.getVisibility() != null) {
-                        existingPost.setVisibility(post.getVisibility());
-                    }
-                    if (post.getContent() != null) {
-                        existingPost.setContent(post.getContent());
-                    }
-                    if (post.getStatus() != null) {
-                        existingPost.setStatus(post.getStatus());
-                    }
-
-                    return existingPost;
-                })
-                .map(postRepository::save);
+                        return existingPost;
+                    })
+                    .orElseThrow(() -> new ResourceNotFoundException("Entity not found", ENTITY_NAME, "idnotfound"));
+        }).orElseThrow(AccountNotFoundException::new);
     }
 
     /**

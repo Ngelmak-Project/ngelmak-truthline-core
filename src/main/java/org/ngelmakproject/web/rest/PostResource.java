@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -25,18 +24,14 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import jakarta.validation.constraints.NotNull;
 
 /**
  * REST controller for managing {@link org.ngelmakproject.domain.NkPost}.
@@ -71,7 +66,7 @@ public class PostResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<NkPost> createPost(@RequestPart NkPost post, @RequestPart List<NkFile> attachments,
+    public ResponseEntity<NkPost> createPost(@RequestPart NkPost post,
             @RequestPart(required = false) List<MultipartFile> medias,
             @RequestPart(required = false) List<MultipartFile> covers)
             throws URISyntaxException {
@@ -102,53 +97,16 @@ public class PostResource {
     @PutMapping("")
     public ResponseEntity<NkPost> updatePost(
             @RequestPart NkPost post,
-            @RequestPart(required = false) List<NkFile> deletedNkFiles,
+            @RequestPart(required = false) List<NkFile> deletedFiles,
             @RequestPart(required = false) List<MultipartFile> medias,
             @RequestPart(required = false) List<MultipartFile> covers)
             throws URISyntaxException, IOException {
         log.debug("REST request to update NkPost : {}", post);
-        post = postService.update(post, deletedNkFiles, medias, covers);
+        post = postService.update(post, deletedFiles, medias, covers);
         return ResponseEntity.ok()
                 .headers(
                         HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, post.getId().toString()))
                 .body(post);
-    }
-
-    /**
-     * {@code PATCH  /posts/:id} : Partial updates given fields of an existing post,
-     * field will ignore if it is null
-     *
-     * @param id   the id of the post to save.
-     * @param post the post to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the updated post,
-     *         or with status {@code 400 (Bad Request)} if the post is not valid,
-     *         or with status {@code 404 (Not Found)} if the post is not found,
-     *         or with status {@code 500 (Internal Server Error)} if the post
-     *         couldn't be updated.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
-     */
-    @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<NkPost> partialUpdatePost(
-            @PathVariable(value = "id", required = false) final Long id,
-            @NotNull @RequestBody NkPost post) throws URISyntaxException {
-        log.debug("REST request to partial update NkPost partially : {}, {}", id, post);
-        if (post.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
-        }
-        if (!Objects.equals(id, post.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
-        }
-
-        if (!postRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
-
-        Optional<NkPost> result = postService.partialUpdate(post);
-
-        return ResponseUtil.wrapOrNotFound(
-                result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, post.getId().toString()));
     }
 
     /**

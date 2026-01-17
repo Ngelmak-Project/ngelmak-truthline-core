@@ -140,15 +140,13 @@ public class FileService {
      * that have expired to permenently delete them from the system and the
      * database.
      * This helps for a rollback.
-     *
-     * @throws IOException
      */
-    public void delete(List<NkFile> files) throws IOException {
+    public void delete(List<NkFile> files) {
         log.debug("Request to delete NkFile : {}", files);
         this.deletePermenently(files);
     }
 
-    public void deletePermenently(List<NkFile> files) throws IOException {
+    public void deletePermenently(List<NkFile> files) {
         log.debug("Request to delete NkFile : {}", files);
         for (NkFile file : files) {
             if (!file.getUrl().isEmpty()) {
