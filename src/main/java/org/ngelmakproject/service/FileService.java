@@ -75,7 +75,8 @@ public class FileService {
             file.setType(mediaFile.getContentType());
             file.setFilename(filename);
             coverFile = covers.get(i);
-            if (coverFile != null) {
+            if (!coverFile.isEmpty() && coverFile.getSize() > 0) {
+                // real cover
                 cover = new NkFile();
                 filename = generateFilename(coverFile);
                 url = fileStorageService.store(coverFile, true, filename, dirs);
@@ -85,6 +86,8 @@ public class FileService {
                 cover.setType(coverFile.getContentType());
                 cover.setFilename(filename);
                 file.setCover(cover);
+            } else {
+                // no cover for this media
             }
             files.add(file);
         }
