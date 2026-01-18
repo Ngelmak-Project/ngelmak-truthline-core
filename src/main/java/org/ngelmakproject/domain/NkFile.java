@@ -5,6 +5,7 @@ import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -49,7 +50,7 @@ public class NkFile implements Serializable {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    @ManyToOne(optional = true)
+    @ManyToOne(optional = true, cascade = CascadeType.PERSIST)
     @JsonIncludeProperties(value = {"id"})
     private NkFile cover;
 
