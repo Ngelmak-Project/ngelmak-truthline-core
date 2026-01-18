@@ -68,9 +68,11 @@ public class PostResource {
      */
     @PostMapping("")
     public ResponseEntity<NkPost> createPost(@RequestPart NkPost post,
-            @RequestPart(required = false) List<MultipartFile> medias,
-            @RequestPart(required = false) List<MultipartFile> covers)
+            @RequestPart(required = false) Optional<List<MultipartFile>> _medias,
+            @RequestPart(required = false) Optional<List<MultipartFile>> _covers)
             throws URISyntaxException {
+        List<MultipartFile> medias = _medias.orElse(List.of());
+        List<MultipartFile> covers = _covers.orElse(List.of());
         log.info("REST request to save Post : {} + {}x media(s) and {}x cover(s)", post, medias.size(), covers.size());
         if (post.getId() != null) {
             throw new BadRequestAlertException("A new post cannot already have an ID", ENTITY_NAME, "idexists");
