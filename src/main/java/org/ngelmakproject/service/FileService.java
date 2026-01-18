@@ -55,13 +55,7 @@ public class FileService {
      * @return the persisted entity.
      */
     public List<NkFile> save(List<MultipartFile> medias, List<MultipartFile> covers) {
-        if (medias == null) {
-            medias = new ArrayList<>();
-        }
-        if (covers == null) {
-            covers = new ArrayList<>();
-        }
-        log.info("Request to save {}x file(s) and {}x cover(s)", medias.size(), covers.size());
+        log.debug("Request to save {}x file(s) and {}x cover(s)", medias.size(), covers.size());
         if (medias.isEmpty())
         {
             return new ArrayList<>();

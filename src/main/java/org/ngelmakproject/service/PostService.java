@@ -1,7 +1,6 @@
 package org.ngelmakproject.service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +15,6 @@ import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.PostRepository;
 import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
-import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.ngelmakproject.web.rest.errors.ResourceNotFoundException;
 import org.ngelmakproject.web.rest.errors.UnauthorizedResourceAccessException;
 import org.slf4j.Logger;
@@ -64,7 +62,7 @@ public class PostService {
      * @return the persisted entity.
      */
     public NkPost save(NkPost post, List<MultipartFile> medias, List<MultipartFile> covers) {
-        log.debug("Request to save Post : {}", post);
+        log.debug("Request to save Post : {} | {}x file(s) and {}x cover(s)", post, medias.size(), covers.size());
         return accountService.findOneByCurrentUser().map(account -> {
             /* 1. we start by saving the files if exists */
             List<NkFile> files = fileService.save(medias, covers);
@@ -89,10 +87,7 @@ public class PostService {
      */
     public NkPost update(NkPost post, List<NkFile> deletedMedias,
             List<MultipartFile> medias, List<MultipartFile> covers) {
-        log.debug("Request to update Post : {}", post);
-        if (post.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
-        }
+        log.debug("Request to update Post : {} | {}x file(s), {}x cover(s), and {}x to be deleted", post, medias.size(), covers.size(), deletedMedias.size());
         return accountService.findOneByCurrentUser().map(account -> {
             return postRepository.findById(post.getId())
                     .map(existingPost -> {
@@ -100,7 +95,6 @@ public class PostService {
                             throw new UnauthorizedResourceAccessException(account.getUser(), existingPost.getId(),
                                     ENTITY_NAME);
                         }
-
                         /* 1. we start by saving the files if exists */
                         List<NkFile> files = fileService.save(medias, covers);
                         /* 2. update the existing post */
@@ -125,9 +119,7 @@ public class PostService {
                         }
                         postRepository.save(existingPost);
                         /* 3. delete removed files */
-                        // [WARN] make sure to delete files only when all other actions are
-                        // successfully completed. Since the deleted actions of file may have
-                        // actions that cannot be cancelled, like removing files.
+                        // [WARN] make sure to delete files only when all other actions are successfully completed. Since the deleted actions of file may have actions that cannot be cancelled, like removing files.
                         fileService.delete(deletedMedias);
 
                         return existingPost;

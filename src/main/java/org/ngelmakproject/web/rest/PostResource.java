@@ -3,7 +3,6 @@ package org.ngelmakproject.web.rest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -100,11 +99,18 @@ public class PostResource {
     @PutMapping("")
     public ResponseEntity<NkPost> updatePost(
             @RequestPart NkPost post,
-            @RequestPart(required = false) List<NkFile> deletedFiles,
-            @RequestPart(required = false) List<MultipartFile> medias,
-            @RequestPart(required = false) List<MultipartFile> covers)
+            @RequestPart(required = false) Optional<List<NkFile>> _deletedFiles,
+            @RequestPart(required = false) Optional<List<MultipartFile>> _medias,
+            @RequestPart(required = false) Optional<List<MultipartFile>> _covers)
             throws URISyntaxException, IOException {
-        log.debug("REST request to update Post : {}", post);
+        List<NkFile> deletedFiles = _deletedFiles.orElse(List.of());
+        List<MultipartFile> medias = _medias.orElse(List.of());
+        List<MultipartFile> covers = _covers.orElse(List.of());
+        log.info("REST request to save Post : {} | {}x media(s), {}x cover(s), and {}x to be deleted", post,
+                medias.size(), covers.size(), deletedFiles.size());
+        if (post.getId() == null) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
         post = postService.update(post, deletedFiles, medias, covers);
         return ResponseEntity.ok()
                 .headers(
