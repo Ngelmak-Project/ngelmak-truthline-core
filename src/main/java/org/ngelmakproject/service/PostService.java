@@ -15,11 +15,11 @@ import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.PostRepository;
 import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
+import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.ngelmakproject.web.rest.errors.ResourceNotFoundException;
 import org.ngelmakproject.web.rest.errors.UnauthorizedResourceAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -43,17 +43,23 @@ public class PostService {
 
     private static final String ENTITY_NAME = "post";
 
-    @Autowired
-    private PostRepository postRepository;
-    @Autowired
-    private CommentService commentService;
-    @Autowired
-    private FileService fileService;
-    @Autowired
-    private AccountService accountService;
+    private final PostRepository postRepository;
+    private final CommentService commentService;
+    private final FileService fileService;
+    private final AccountService accountService;
+    private final EntityManager entityManager;
 
-    @Autowired
-    private EntityManager entityManager;
+    PostService(PostRepository postRepository,
+            CommentService commentService,
+            FileService fileService,
+            AccountService accountService,
+            EntityManager entityManager) {
+        this.postRepository = postRepository;
+        this.commentService = commentService;
+        this.fileService = fileService;
+        this.accountService = accountService;
+        this.entityManager = entityManager;
+    }
 
     /**
      * Save a post.
@@ -64,6 +70,9 @@ public class PostService {
     @Transactional
     public NkPost save(NkPost post, List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to save Post : {} | {}x file(s) and {}x cover(s)", post, medias.size(), covers.size());
+        if (post.getContent().length() > 3000) {
+            throw new BadRequestAlertException("Contenu trop long > 3000 caractères.", ENTITY_NAME, "contentTooLong");
+        }
         return accountService.findOneByCurrentUser().map(account -> {
             /* 1. we start by saving the files if exists */
             List<NkFile> files = fileService.save(medias, covers);
@@ -88,7 +97,11 @@ public class PostService {
      */
     public NkPost update(NkPost post, List<NkFile> deletedMedias,
             List<MultipartFile> medias, List<MultipartFile> covers) {
-        log.debug("Request to update Post : {} | {}x file(s), {}x cover(s), and {}x to be deleted", post, medias.size(), covers.size(), deletedMedias.size());
+        log.debug("Request to update Post : {} | {}x file(s), {}x cover(s), and {}x to be deleted", post, medias.size(),
+                covers.size(), deletedMedias.size());
+        if (post.getContent().length() > 3000) {
+            throw new BadRequestAlertException("Contenu trop long > 3000 caractères.", ENTITY_NAME, "contentTooLong");
+        }
         return accountService.findOneByCurrentUser().map(account -> {
             return postRepository.findById(post.getId())
                     .map(existingPost -> {
@@ -120,7 +133,9 @@ public class PostService {
                         }
                         postRepository.save(existingPost);
                         /* 3. delete removed files */
-                        // [WARN] make sure to delete files only when all other actions are successfully completed. Since the deleted actions of file may have actions that cannot be cancelled, like removing files.
+                        // [WARN] make sure to delete files only when all other actions are successfully
+                        // completed. Since the deleted actions of file may have actions that cannot be
+                        // cancelled, like removing files.
                         fileService.delete(deletedMedias);
 
                         return existingPost;
@@ -185,7 +200,7 @@ public class PostService {
      * @param id
      * @param pageRequest
      * @return
-    */
+     */
     @Transactional(readOnly = true)
     public Page<NkPost> getRecommendedPosts(Pageable pageable) {
         log.debug("Post to get recommended Post");

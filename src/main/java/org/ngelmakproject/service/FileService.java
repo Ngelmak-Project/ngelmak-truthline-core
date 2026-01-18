@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.repository.FileRepository;
@@ -19,7 +20,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -56,8 +56,7 @@ public class FileService {
      */
     public List<NkFile> save(List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to save {}x file(s) and {}x cover(s)", medias.size(), covers.size());
-        if (medias.isEmpty())
-        {
+        if (medias.isEmpty()) {
             return new ArrayList<>();
         }
         NkFile file, cover;
@@ -66,13 +65,10 @@ public class FileService {
         URL url = null;
         String filename = null;
         String[] dirs = { "media", "postfiles" }; // path where to save the file media.
-        LocalDate date = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        String format = date.format(formatter);
         for (int i = 0; i < medias.size(); i++) {
             mediaFile = medias.get(i);
             file = new NkFile();
-            filename = String.format("Ngelmak-%s-%s", format, StringUtils.capitalize(mediaFile.getOriginalFilename()));
+            filename = generateFilename(mediaFile);
             url = fileStorageService.store(mediaFile, true, filename, dirs);
             file.setSize(mediaFile.getSize());
             file.setUrl(url.toString());
@@ -81,8 +77,7 @@ public class FileService {
             coverFile = covers.get(i);
             if (coverFile != null) {
                 cover = new NkFile();
-                filename = String.format("Ngelmak-poster-%s-%s", format,
-                        StringUtils.capitalize(mediaFile.getOriginalFilename().replaceFirst(".[a-zA-Z0-9]+$", ".png")));
+                filename = generateFilename(coverFile);
                 url = fileStorageService.store(coverFile, true, filename, dirs);
                 cover.setUrl(url.toString());
                 cover.setSize(mediaFile.getSize());
@@ -94,6 +89,19 @@ public class FileService {
             files.add(file);
         }
         return attachmentRepository.saveAll(files);
+    }
+
+    private String generateFilename(MultipartFile file) {
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String dateFormat = date.format(dateFormatter);
+        String original = file.getOriginalFilename();
+        String ext = original != null && original.contains(".")
+                ? original.substring(original.lastIndexOf('.') + 1)
+                : "";
+
+        String filename = "Ngelmak-" + dateFormat + "-" + UUID.randomUUID() + "." + ext;
+        return filename;
     }
 
     /**

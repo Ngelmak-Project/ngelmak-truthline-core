@@ -59,7 +59,7 @@ public class NkPost implements Serializable {
     @Column(name = "visibility")
     private Visibility visibility;
 
-    @Column(name = "content", length = 1000, nullable = false)
+    @Column(name = "content", nullable = false)
     private String content;
 
     @NotNull

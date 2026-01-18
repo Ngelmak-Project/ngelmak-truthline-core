@@ -3,7 +3,6 @@ package org.ngelmakproject.web.rest;
 import java.util.concurrent.TimeUnit;
 
 import org.ngelmakproject.domain.NkFeed;
-import org.ngelmakproject.repository.FeedRepository;
 import org.ngelmakproject.service.FeedService;
 import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.slf4j.Logger;
@@ -33,11 +32,8 @@ public class FeedResource {
 
     private final FeedService feedService;
 
-    private final FeedRepository feedRepository;
-
-    public FeedResource(FeedService feedService, FeedRepository feedRepository) {
+    public FeedResource(FeedService feedService) {
         this.feedService = feedService;
-        this.feedRepository = feedRepository;
     }
 
     /**
