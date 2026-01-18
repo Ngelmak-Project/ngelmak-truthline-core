@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkAccount;
+import org.ngelmakproject.domain.NkFeed;
 import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.springframework.data.domain.Page;
@@ -56,8 +57,6 @@ public interface PostRepository extends JpaRepository<NkPost, Long> {
   //     "LEFT JOIN FETCH post.attachments attachments " +
   //     "WHERE post.id = ?1")
   Optional<NkPost> findById(Long id);
-
   Page<NkPost> findByAccount(NkAccount account, Pageable pageable);
-
   Page<NkPost> findByStatusOrderByAtDesc(Status status, Pageable pageable);
 }

@@ -30,12 +30,14 @@ public class FeedService {
     private static final Logger log = LoggerFactory.getLogger(FeedService.class);
 
     private final FeedRepository feedRepository;
+    private final PostService postService;
     private final AccountService accountService;
     private final MembershipRepository membershipRepository;
 
-    public FeedService(FeedRepository feedRepository, AccountService accountService,
+    public FeedService(FeedRepository feedRepository, PostService postService, AccountService accountService,
             MembershipRepository membershipRepository) {
         this.feedRepository = feedRepository;
+        this.postService = postService;
         this.accountService = accountService;
         this.membershipRepository = membershipRepository;
     }
@@ -64,35 +66,21 @@ public class FeedService {
     public PageDTO<NkFeed> getFeed(Pageable pageable) {
         Optional<NkAccount> optional = accountService.findOneByCurrentUser();
         List<NkFeed> allFeeds = new ArrayList<>();
-        List<NkFeed> recommendedPosts;
         if (optional.isPresent()) {
             log.debug("Request to retrieve Feeds for Account {}.", optional.get());
             List<NkFeed> followingAccountsFeed = feedRepository.findByFeedOwner(optional.get(), pageable).getContent();
             allFeeds.addAll(followingAccountsFeed);
-        } else {
-            recommendedPosts = getRecommendedPosts(null, pageable).getContent();
-            allFeeds.addAll(recommendedPosts);
         }
-        // Get recommended posts (assuming a method to fetch recommendations)
+        allFeeds.addAll(this.postService.getRecommendedPosts(pageable).getContent().stream().map(post -> {
+            NkFeed feed = new NkFeed();
+            feed.setPost(post);
+            return feed;
+        }).toList());
+        // [TODO] Get recommended posts (assuming a method to fetch recommendations)
         allFeeds.sort((a, b) -> {
             return -1 * a.getPost().getAt().compareTo(b.getPost().getAt());
         });
         Page<NkFeed> page = new PageImpl<>(allFeeds, pageable, allFeeds.size());
         return new PageDTO<>(page);
-    }
-
-    /**
-     * [TODO]
-     * To fetch recommended posts, you can integrate a recommendation engine or
-     * machine learning model that analyzes user preferences and suggests relevant
-     * content.
-     * 
-     * @param id
-     * @param pageRequest
-     * @return
-     */
-    private Page<NkFeed> getRecommendedPosts(Long id, Pageable pageable) {
-        log.warn("Need to be implemented.");
-        return feedRepository.findByOrderByDateDesc(pageable);
     }
 }

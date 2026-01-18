@@ -175,6 +175,22 @@ public class PostService {
         // postRepository.deleteById(id);
     }
 
+    /**
+     * [TODO]
+     * To fetch recommended posts, you can integrate a recommendation engine or
+     * machine learning model that analyzes user preferences and suggests relevant
+     * content.
+     * 
+     * @param id
+     * @param pageRequest
+     * @return
+    */
+    @Transactional(readOnly = true)
+    public Page<NkPost> getRecommendedPosts(Pageable pageable) {
+        log.debug("Post to get recommended Post");
+        return postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
+    }
+
     @Transactional(readOnly = true)
     public PageDTO<NkPost> fullTextSearch(String fullText, Pageable pageable) {
         String sqlQuery = "SELECT " +
