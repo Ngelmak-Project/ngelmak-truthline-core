@@ -76,8 +76,8 @@ public class NkPost implements Serializable {
     @JsonIncludeProperties(value = { "id", "identifier", "name", "avatar" })
     private NkAccount account;
 
-    @JsonIgnore
-    @ManyToMany(cascade = CascadeType.REMOVE)
+    @ManyToMany(cascade = CascadeType.REMOVE) // [TODO] Make sure not to delete the file before checking first if it has
+                                              // being used by another resource.
     @JoinTable(name = "nk_post_file", joinColumns = {
             @JoinColumn(name = "post_id", referencedColumnName = "id") }, inverseJoinColumns = {
                     @JoinColumn(name = "file_id", referencedColumnName = "id") })

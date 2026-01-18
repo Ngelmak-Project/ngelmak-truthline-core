@@ -61,6 +61,7 @@ public class PostService {
      * @param post the entity to save.
      * @return the persisted entity.
      */
+    @Transactional
     public NkPost save(NkPost post, List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to save Post : {} | {}x file(s) and {}x cover(s)", post, medias.size(), covers.size());
         return accountService.findOneByCurrentUser().map(account -> {
