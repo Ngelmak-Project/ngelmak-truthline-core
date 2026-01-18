@@ -25,12 +25,16 @@ public class StaticConfig implements WebMvcConfigurer {
      * Any request that arrives at [endPoint]/public/** will be mapped to
      * /content/public/
      * Note that classpath here is by default src/main/resources.
+     * /public/** → /var/ngelmak/storage/**
      */
-    String pattern = String.format("%s/**", this.publicAccessLocation); // ->
-    // ${file.public.access.location}/**
-    Path path = Paths.get(this.location).toAbsolutePath();
-    String target = String.format("file:%s/", path.toString()); // ->
-    // file:${file.upload-directory.location}/
+
+    String pattern = publicAccessLocation + "/**";
+
+    // location is already absolute: /var/ngelmak/storage
+    Path path = Paths.get(location).toAbsolutePath();
+
+    // Spring needs "file:/var/ngelmak/storage/"
+    String target = "file:" + path.toString() + "/";
 
     registry.addResourceHandler(pattern)
         .addResourceLocations(target)
@@ -39,6 +43,5 @@ public class StaticConfig implements WebMvcConfigurer {
             .mustRevalidate())
         .resourceChain(true)
         .addResolver(new PathResourceResolver());
-
   }
 }

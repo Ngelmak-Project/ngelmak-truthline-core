@@ -122,6 +122,9 @@ public class FileStorageService {
    * Change given path to url.
    * The absolute path is splited to extract the workdir (location) and replace it
    * with the public/private representation.
+   * /var/ngelmak/storage/8f3c2a1d.png
+   * becomes
+   * /public/8f3c2a1d.png
    * 
    * @param path     is the absolute path of the file.
    * @param isPublic
@@ -135,11 +138,28 @@ public class FileStorageService {
     return new URL(this.protocol, this.host, this.port, file);
   }
 
+  /**
+   * https://api.ngelmak.com/public/8f3c2a1d.png
+   * → /var/ngelmak/storage/8f3c2a1d.png
+
+   * @param url
+   * @return
+   * @throws MalformedURLException
+   */
   private Path toPath(URL url) throws MalformedURLException {
-    String file = url.getFile();
-    file = file.replace(this.privateAccessLocation, "").replace(this.publicAccessLocation, "");
-    file = clean(file);
-    return root(file);
+    // String file = url.getFile();
+    // file = file.replace(this.privateAccessLocation,
+    // "").replace(this.publicAccessLocation, "");
+    // file = clean(file);
+    // return root(file);
+
+    String path = url.getPath();
+    if (path.startsWith("/" + publicAccessLocation + "/")) {
+      path = path.substring(publicAccessLocation.length() + 2);
+    } else if (path.startsWith("/" + privateAccessLocation + "/")) {
+      path = path.substring(privateAccessLocation.length() + 2);
+    }
+    return Paths.get(location).resolve(path).toAbsolutePath();
   }
 
   private String clean(String path) {

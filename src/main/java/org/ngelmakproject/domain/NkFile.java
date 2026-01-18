@@ -31,6 +31,9 @@ public class NkFile implements Serializable {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "hash", unique = true)
+    private String hash;
+
     @Column(name = "filename")
     private String filename;
 
@@ -51,7 +54,7 @@ public class NkFile implements Serializable {
     private Instant deletedAt;
 
     @ManyToOne(optional = true, cascade = CascadeType.PERSIST)
-    @JsonIncludeProperties(value = {"id"})
+    @JsonIncludeProperties(value = { "id" })
     private NkFile cover;
 
     public static long getSerialversionuid() {
@@ -64,6 +67,14 @@ public class NkFile implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 
     public String getFilename() {

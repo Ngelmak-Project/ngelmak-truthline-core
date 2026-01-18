@@ -14,7 +14,6 @@ import org.ngelmakproject.repository.FileRepository;
 import org.ngelmakproject.service.storage.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,10 +31,14 @@ public class FileService {
 
     private static final Logger log = LoggerFactory.getLogger(FileService.class);
 
-    @Autowired
-    private FileRepository attachmentRepository;
-    @Autowired
-    private FileStorageService fileStorageService;
+    private final FileRepository fileRepository;
+    private final FileStorageService fileStorageService;
+
+    public FileService(FileRepository fileRepository,
+            FileStorageService fileStorageService) {
+        this.fileRepository = fileRepository;
+        this.fileStorageService = fileStorageService;
+    }
 
     /**
      * Save a file.
@@ -45,7 +48,7 @@ public class FileService {
      */
     public NkFile save(NkFile file) {
         log.debug("Request to save NkFile : {}", file);
-        return attachmentRepository.save(file);
+        return fileRepository.save(file);
     }
 
     /**
@@ -91,7 +94,7 @@ public class FileService {
             }
             files.add(file);
         }
-        return attachmentRepository.saveAll(files);
+        return fileRepository.saveAll(files);
     }
 
     private String generateFilename(MultipartFile file) {
@@ -116,7 +119,7 @@ public class FileService {
     @Transactional(readOnly = true)
     public Page<NkFile> findAll(Pageable pageable) {
         log.debug("Request to get all NkFiles");
-        return attachmentRepository.findAll(pageable);
+        return fileRepository.findAll(pageable);
     }
 
     /**
@@ -128,7 +131,7 @@ public class FileService {
     @Transactional(readOnly = true)
     public Optional<NkFile> findOne(Long id) {
         log.debug("Request to get NkFile : {}", id);
-        return attachmentRepository.findById(id);
+        return fileRepository.findById(id);
     }
 
     /**
@@ -141,7 +144,7 @@ public class FileService {
     @Transactional(readOnly = true)
     public Optional<byte[]> getResource(Long id) throws IOException {
         log.debug("Request to get the actual resource of NkFile : {}", id);
-        Optional<NkFile> optional = attachmentRepository.findById(id);
+        Optional<NkFile> optional = fileRepository.findById(id);
         if (optional.isEmpty()) {
             return Optional.empty();
         }
@@ -170,7 +173,7 @@ public class FileService {
                 fileStorageService.delete(file.getUrl());
             }
         }
-        attachmentRepository.deleteAll(files);
+        fileRepository.deleteAll(files);
     }
 
     /**
@@ -180,7 +183,7 @@ public class FileService {
      */
     public void delete(Long id) {
         log.debug("Request to delete NkFile : {}", id);
-        attachmentRepository.deleteById(id);
+        fileRepository.deleteById(id);
     }
 
 }

@@ -43,19 +43,16 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
-
   servlet:
-    multipart:
-      enabled: true
-      max-file-size: 30MB
-      max-request-size: 30MB
-      resolve-lazily: false
+    multipart: # Upload limits
+      max-file-size: 50MB
+      max-request-size: 200MB
 
   resources:
     cache-period: 86400
 
 server:
-  host: localhost
+  host: acemagic
   port: 5742
   protocol: http
 
@@ -78,12 +75,23 @@ logging:
 debug: true
 
 
+# file:
+#   upload-directory:
+#     location: ./ngelmak-directory/files
+#   public:
+#     access:
+#       location: /resources/public/files
+#   private:
+#     access:
+#       location: /resources/files
+
+# Physical storage location (deduplicated)
 file:
   upload-directory:
-    location: ./ngelmak-directory/files
+    # Absolute path where files are physically stored
+    location: /ngelmak/ngekmak-core/static/uploads/storage
   public:
-    access:
-      location: /resources/public/files
+    # Public URL prefix (what users see)
+    access.location: /public
   private:
-    access:
-      location: /resources/files
+    access.location: /private
