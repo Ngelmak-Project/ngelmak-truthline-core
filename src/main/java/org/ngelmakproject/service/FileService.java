@@ -2,6 +2,8 @@ package org.ngelmakproject.service;
 
 import java.net.URL;
 import java.security.MessageDigest;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +91,9 @@ public class FileService {
     }
 
     /**
-     * [TODO] Mark a file as to be deleted first then a cron would terminate the job later.
+     * [TODO] Mark a file as to be deleted first then a cron would terminate the job
+     * later.
+     * 
      * @param files
      */
     public void delete(List<NkFile> files) {
@@ -115,11 +119,18 @@ public class FileService {
                 : "";
         NkFile file = new NkFile();
         String hash = computeHash(media);
+        String filename = buildFilename("NK", hash, ext);
         file.setHash(hash);
-        file.setFilename(hash + "." + ext);
+        file.setFilename(filename);
         file.setType(media.getContentType());
         file.setSize(media.getSize());
         return file;
+    }
+
+    private String buildFilename(String prefix, String hash, String ext) {
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE); // yyyyMMdd
+        String shortHash = hash.substring(0, 8);
+        return prefix + "-" + date + "-" + shortHash + "." + ext;
     }
 
     private String computeHash(MultipartFile file) {
