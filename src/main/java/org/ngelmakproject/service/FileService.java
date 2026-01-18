@@ -88,6 +88,27 @@ public class FileService {
         return files;
     }
 
+    /**
+     * [TODO] Mark a file as to be deleted first then a cron would terminate the job later.
+     * @param files
+     */
+    public void delete(List<NkFile> files) {
+        this.deletePermenently(files);
+    }
+
+    public void deletePermenently(List<NkFile> files) {
+        for (NkFile file : files) {
+            if (!file.getUrl().isEmpty()) {
+                fileStorageService.delete(file.getUrl());
+            }
+        }
+        fileRepository.deleteAll(files);
+    }
+
+    public void delete(Long id) {
+        fileRepository.deleteById(id);
+    }
+
     private NkFile MultipartToFile(MultipartFile media) {
         String name = media.getOriginalFilename();
         String ext = (name != null && name.contains(".")) ? name.substring(name.lastIndexOf('.') + 1).toLowerCase()
