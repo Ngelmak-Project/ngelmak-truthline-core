@@ -32,7 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional
 public class AccountService {
 
-    private static final String ENTITY_NAME = "ngelmak-account";
+    private static final String ENTITY_NAME = "account";
 
     private static final Logger log = LoggerFactory.getLogger(AccountService.class);
 
@@ -122,7 +122,7 @@ public class AccountService {
      * @return the persisted entity.
      */
     public Optional<NkAccount> partialUpdate(NkAccount account) {
-        log.debug("Request to partially update NkAccount : {}", account);
+        log.debug("Request to partially update Account : {}", account);
 
         return this.findOneByCurrentUser()
                 .map(existingNkAccount -> {
@@ -173,7 +173,7 @@ public class AccountService {
      */
     @Transactional(readOnly = true)
     public Optional<NkAccount> findOne(Long id) {
-        log.debug("Request to get NkAccount : {}", id);
+        log.debug("Request to get Account : {}", id);
         return accountRepository.findById(id);
     }
 
@@ -198,7 +198,7 @@ public class AccountService {
      * @param id the id of the entity.
      */
     public void delete(Long id) {
-        log.debug("Request to delete NkAccount : {}", id);
+        log.debug("Request to delete Account : {}", id);
         accountRepository.deleteById(id);
     }
 

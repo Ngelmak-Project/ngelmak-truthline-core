@@ -55,7 +55,7 @@ public class FileService {
      * @return the persisted entity.
      */
     public List<NkFile> save(List<MultipartFile> medias, List<MultipartFile> covers) {
-        log.debug("Request to save {} multipartFiles", medias.size());
+        log.info("Request to save {} files", medias.size());
         NkFile file, cover;
         List<NkFile> files = new ArrayList<>();
         MultipartFile mediaFile, mediaCover;
@@ -76,7 +76,7 @@ public class FileService {
             mediaCover = covers.get(i);
             if (mediaCover != null) {
                 cover = new NkFile();
-                filename = String.format("Ngelmak-Poster-%s-%s", format,
+                filename = String.format("Ngelmak-poster-%s-%s", format,
                         StringUtils.capitalize(mediaFile.getOriginalFilename().replaceFirst(".[a-zA-Z0-9]+$", ".png")));
                 url = fileStorageService.store(mediaCover, true, filename, dirs);
                 cover.setUrl(url.toString());
