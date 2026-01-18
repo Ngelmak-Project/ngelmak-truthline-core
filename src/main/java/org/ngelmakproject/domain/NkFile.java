@@ -50,7 +50,6 @@ public class NkFile implements Serializable {
     private Instant deletedAt;
 
     @ManyToOne(optional = true)
-    @NotNull
     @JsonIncludeProperties(value = {"id"})
     private NkFile cover;
 
