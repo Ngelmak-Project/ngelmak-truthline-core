@@ -3,6 +3,7 @@ package org.ngelmakproject.web.rest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -70,7 +71,7 @@ public class PostResource {
             @RequestPart(required = false) List<MultipartFile> medias,
             @RequestPart(required = false) List<MultipartFile> covers)
             throws URISyntaxException {
-        log.debug("REST request to save Post : {}", post);
+        log.info("REST request to save Post : {} + {}x media(s) and {}x cover(s)", post, medias.size(), covers.size());
         if (post.getId() != null) {
             throw new BadRequestAlertException("A new post cannot already have an ID", ENTITY_NAME, "idexists");
         }
