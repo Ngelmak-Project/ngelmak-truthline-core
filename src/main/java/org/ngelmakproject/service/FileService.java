@@ -1,22 +1,17 @@
 package org.ngelmakproject.service;
 
-import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.repository.FileRepository;
 import org.ngelmakproject.service.storage.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,150 +35,83 @@ public class FileService {
         this.fileStorageService = fileStorageService;
     }
 
-    /**
-     * Save a file.
-     *
-     * @param file the entity to save.
-     * @return the persisted entity.
-     */
-    public NkFile save(NkFile file) {
-        log.debug("Request to save NkFile : {}", file);
-        return fileRepository.save(file);
-    }
-
-    /**
-     * Save a file.
-     *
-     * @param file the entity to save.
-     * @return the persisted entity.
-     */
     public List<NkFile> save(List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to save {}x file(s) and {}x cover(s)", medias.size(), covers.size());
         if (medias.isEmpty()) {
-            return new ArrayList<>();
+            return List.of();
         }
-        NkFile file, cover;
-        MultipartFile mediaFile, coverFile;
-        List<NkFile> files = new ArrayList<>();
+        List<NkFile> allFiles = new ArrayList<>();
+        MultipartFile _media, _cover = null;
         URL url = null;
-        String filename = null;
-        String[] dirs = { "media", "postfiles" }; // path where to save the file media.
+        // Convert all multipart files to NkFile objects with hash
         for (int i = 0; i < medias.size(); i++) {
-            mediaFile = medias.get(i);
-            file = new NkFile();
-            filename = generateFilename(mediaFile);
-            url = fileStorageService.store(mediaFile, true, filename, dirs);
-            file.setSize(mediaFile.getSize());
-            file.setUrl(url.toString());
-            file.setType(mediaFile.getContentType());
-            file.setFilename(filename);
-            coverFile = covers.get(i);
-            if (!coverFile.isEmpty() && coverFile.getSize() > 0) {
-                // real cover
-                cover = new NkFile();
-                filename = generateFilename(coverFile);
-                url = fileStorageService.store(coverFile, true, filename, dirs);
+            // MEDIA
+            _media = medias.get(i);
+            NkFile media = MultipartToFile(_media);
+            url = fileStorageService.store(_media, true, media.getFilename());
+            media.setUrl(url.toString());
+            allFiles.add(media);
+            // COVER (optional)
+            _cover = covers.get(i);
+            if (_cover != null && !_cover.isEmpty()) {
+                NkFile cover = MultipartToFile(_cover);
+                url = fileStorageService.store(_cover, true, cover.getFilename());
                 cover.setUrl(url.toString());
-                cover.setSize(mediaFile.getSize());
-                cover.setUrl(url.toString());
-                cover.setType(coverFile.getContentType());
-                cover.setFilename(filename);
-                file.setCover(cover);
-            } else {
-                // no cover for this media
+                media.setCover(cover); // set it as cover.
+                allFiles.add(cover);
             }
-            files.add(file);
         }
-        return fileRepository.saveAll(files);
+
+        // Gather all hashes
+        List<String> hashes = allFiles.stream()
+                .map(NkFile::getHash)
+                .distinct()
+                .toList();
+
+        // Query DB once for existing hashes
+        Map<String, NkFile> existing = fileRepository.findByHashIn(hashes)
+                .stream()
+                .collect(Collectors.toMap(NkFile::getHash, f -> f));
+
+        // Filter out existing files → keep only new ones
+        List<NkFile> newFiles = allFiles.stream()
+                .filter(f -> !existing.containsKey(f.getHash()))
+                .toList();
+
+        // Persist new files in one DB call
+        newFiles = fileRepository.saveAll(newFiles);
+
+        // Build final result list (existing + new)
+        List<NkFile> files = new ArrayList<>(newFiles); // add new saved files.
+        existing.forEach((hash, file) -> files.add(file)); // add existing files to the list.
+
+        return files;
     }
 
-    private String generateFilename(MultipartFile file) {
-        LocalDate date = LocalDate.now();
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        String dateFormat = date.format(dateFormatter);
-        String original = file.getOriginalFilename();
-        String ext = original != null && original.contains(".")
-                ? original.substring(original.lastIndexOf('.') + 1)
+    private NkFile MultipartToFile(MultipartFile media) {
+        String name = media.getOriginalFilename();
+        String ext = (name != null && name.contains(".")) ? name.substring(name.lastIndexOf('.') + 1).toLowerCase()
                 : "";
-
-        String filename = "Ngelmak-" + dateFormat + "-" + UUID.randomUUID() + "." + ext;
-        return filename;
+        NkFile file = new NkFile();
+        String hash = computeHash(media);
+        file.setHash(hash);
+        file.setFilename(hash + "." + ext);
+        file.setType(media.getContentType());
+        file.setSize(media.getSize());
+        return file;
     }
 
-    /**
-     * Get all the files.
-     *
-     * @param pageable the pagination information.
-     * @return the list of entities.
-     */
-    @Transactional(readOnly = true)
-    public Page<NkFile> findAll(Pageable pageable) {
-        log.debug("Request to get all NkFiles");
-        return fileRepository.findAll(pageable);
-    }
-
-    /**
-     * Get one file by id.
-     *
-     * @param id the id of the entity.
-     * @return the entity.
-     */
-    @Transactional(readOnly = true)
-    public Optional<NkFile> findOne(Long id) {
-        log.debug("Request to get NkFile : {}", id);
-        return fileRepository.findById(id);
-    }
-
-    /**
-     * Get file's resource by id.
-     *
-     * @param id the id of the entity.
-     * @return the entity.
-     * @throws IOException
-     */
-    @Transactional(readOnly = true)
-    public Optional<byte[]> getResource(Long id) throws IOException {
-        log.debug("Request to get the actual resource of NkFile : {}", id);
-        Optional<NkFile> optional = fileRepository.findById(id);
-        if (optional.isEmpty()) {
-            return Optional.empty();
+    private String computeHash(MultipartFile file) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(file.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes)
+                sb.append(String.format("%02x", b));
+            return sb.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to compute hash", e);
         }
-        NkFile file = optional.get();
-        Resource resource = fileStorageService.loadAsResource(file.getUrl());
-        return Optional.of(resource.getContentAsByteArray());
-    }
-
-    /**
-     * Delete given files and there multipartFiles if exist.
-     * The deleting process in the first place marks items as deleted by putting the
-     * datetime on which they have been delete. Later, a crontab goes through all
-     * that have expired to permenently delete them from the system and the
-     * database.
-     * This helps for a rollback.
-     */
-    public void delete(List<NkFile> files) {
-        log.debug("Request to delete NkFile : {}", files);
-        this.deletePermenently(files);
-    }
-
-    public void deletePermenently(List<NkFile> files) {
-        log.debug("Request to delete NkFile : {}", files);
-        for (NkFile file : files) {
-            if (!file.getUrl().isEmpty()) {
-                fileStorageService.delete(file.getUrl());
-            }
-        }
-        fileRepository.deleteAll(files);
-    }
-
-    /**
-     * Delete the file by id.
-     *
-     * @param id the id of the entity.
-     */
-    public void delete(Long id) {
-        log.debug("Request to delete NkFile : {}", id);
-        fileRepository.deleteById(id);
     }
 
 }

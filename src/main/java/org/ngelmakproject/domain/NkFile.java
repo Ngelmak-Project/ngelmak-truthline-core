@@ -31,7 +31,7 @@ public class NkFile implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "hash", unique = true)
+    @Column(name = "hash")
     private String hash;
 
     @Column(name = "filename")

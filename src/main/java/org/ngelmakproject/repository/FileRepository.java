@@ -1,5 +1,8 @@
 package org.ngelmakproject.repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.ngelmakproject.domain.NkFile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -10,4 +13,6 @@ import org.springframework.stereotype.Repository;
 @SuppressWarnings("unused")
 @Repository
 public interface FileRepository extends JpaRepository<NkFile, Long> {
+  Optional<NkFile> findByHash(String hash);
+  List<NkFile> findByHashIn(List<String> hashes);
 }
