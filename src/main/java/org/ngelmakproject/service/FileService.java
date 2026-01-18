@@ -61,8 +61,8 @@ public class FileService {
             return new ArrayList<>();
         }
         NkFile file, cover;
+        MultipartFile mediaFile, coverFile;
         List<NkFile> files = new ArrayList<>();
-        MultipartFile mediaFile, mediaCover;
         URL url = null;
         String filename = null;
         String[] dirs = { "media", "postfiles" }; // path where to save the file media.
@@ -76,16 +76,18 @@ public class FileService {
             url = fileStorageService.store(mediaFile, true, filename, dirs);
             file.setSize(mediaFile.getSize());
             file.setUrl(url.toString());
+            file.setType(mediaFile.getContentType());
             file.setFilename(filename);
-            mediaCover = covers.get(i);
-            if (mediaCover != null) {
+            coverFile = covers.get(i);
+            if (coverFile != null) {
                 cover = new NkFile();
                 filename = String.format("Ngelmak-poster-%s-%s", format,
                         StringUtils.capitalize(mediaFile.getOriginalFilename().replaceFirst(".[a-zA-Z0-9]+$", ".png")));
-                url = fileStorageService.store(mediaCover, true, filename, dirs);
+                url = fileStorageService.store(coverFile, true, filename, dirs);
                 cover.setUrl(url.toString());
                 cover.setSize(mediaFile.getSize());
                 cover.setUrl(url.toString());
+                cover.setType(coverFile.getContentType());
                 cover.setFilename(filename);
                 file.setCover(cover);
             }
