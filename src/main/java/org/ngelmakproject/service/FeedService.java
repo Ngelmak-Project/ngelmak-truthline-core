@@ -96,7 +96,7 @@ public class FeedService {
     //     return new PageDTO<>(page);
     // }
 
-    public PageDTO<FeedDTO> getFeed(Long userId, Pageable pageable) {
+    public PageDTO<FeedDTO> getFeed(Pageable pageable) {
         // 1. Fetch feed entries with posts, accounts, and files
         Optional<NkAccount> optional = accountService.findOneByCurrentUser();
         List<NkFeed> feeds = new ArrayList<>();
@@ -124,7 +124,7 @@ public class FeedService {
         // 2. Bulk fetch reactions for all posts in the feed
         List<NkReaction> reactions = reactionRepository.findByPostIds(postIds);
         // 3. Build reaction summaries
-        Map<Long, ReactionSummaryDTO> reactionMap = PostService.buildReactionSummaries(reactions, userId);
+        Map<Long, ReactionSummaryDTO> reactionMap = PostService.buildReactionSummaries(reactions, optional.map(NkAccount::getId).orElseGet(null));
         // 4. Map feed entries to DTOs
         List<FeedDTO> feedDTOs = feeds.stream().map(feed -> {
             var post = feed.getPost();
