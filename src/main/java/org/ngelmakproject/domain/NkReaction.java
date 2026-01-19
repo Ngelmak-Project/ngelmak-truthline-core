@@ -1,7 +1,5 @@
 package org.ngelmakproject.domain;
 
-import java.io.Serializable;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,35 +10,25 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-/**
- * findByFeedOwner The NkFeed entity.
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
-@Table(name = "nk_feed")
-public class NkFeed implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-    
+@Table(name = "nk_reaction")
+public class NkReaction {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "post_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
     private NkPost post;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "feed_owner_id")
-    private NkAccount feedOwner;
+    @Column(name = "account_id")
+    private NkAccount account;
+
+    @Column(name = "emoji", nullable = false)
+    private String emoji;
 
     public Long getId() {
         return id;
@@ -58,12 +46,20 @@ public class NkFeed implements Serializable {
         this.post = post;
     }
 
-    public NkAccount getFeedOwner() {
-        return feedOwner;
+    public NkAccount getAccount() {
+        return account;
     }
 
-    public void setFeedOwner(NkAccount feedOwner) {
-        this.feedOwner = feedOwner;
+    public void setAccount(NkAccount account) {
+        this.account = account;
+    }
+
+    public String getEmoji() {
+        return emoji;
+    }
+
+    public void setEmoji(String emoji) {
+        this.emoji = emoji;
     }
 
 }

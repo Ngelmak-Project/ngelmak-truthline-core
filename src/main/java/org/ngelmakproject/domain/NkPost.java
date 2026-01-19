@@ -94,6 +94,12 @@ public class NkPost implements Serializable {
     @JsonIncludeProperties(value = { "id" })
     private Set<NkComment> comments = new HashSet<>();
 
+    @Column(name = "comment_count")
+    private int commentCount;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<NkReaction> reactions = new HashSet<>();
+
     public Long getId() {
         return this.id;
     }
@@ -260,16 +266,29 @@ public class NkPost implements Serializable {
         return this;
     }
 
-    public NkPost getPostReference() {
+    public int getCommentCount() {
+        return this.commentCount;
+    }
+
+    public NkPost commentCount(int commentCount) {
+        this.setCommentCount(commentCount);
+        return this;
+    }
+
+    public void setCommentCount(int commentCount) {
+        this.commentCount = commentCount;
+    }
+
+    public NkPost getPostReply() {
         return this.postReply;
     }
 
-    public void setPostReference(NkPost postReply) {
+    public void setPostReply(NkPost postReply) {
         this.postReply = postReply;
     }
 
     public NkPost postReply(NkPost postReply) {
-        this.setPostReference(postReply);
+        this.setPostReply(postReply);
         return this;
     }
 

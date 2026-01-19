@@ -1,36 +1,37 @@
 package org.ngelmakproject.web.rest.dto;
 
-import java.io.Serializable;
-import java.time.ZonedDateTime;
+import java.time.Instant;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.ngelmakproject.domain.enumeration.Accessibility;
+import org.ngelmakproject.domain.NkPost;
+import org.ngelmakproject.domain.enumeration.Status;
+import org.ngelmakproject.domain.enumeration.Visibility;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-
-@Setter
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class PostDTO implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    private Long id;
-
-    @NotNull
-    private String name;
-
-    private String foregroundPicture;
-
-    private String backgroundPicture;
-
-    private Accessibility visibility;
-
-    private ZonedDateTime createdAt;
-
+public record PostDTO(
+        Long id,
+        String content,
+        Instant at,
+        Instant lastUpdate,
+        Visibility visibility,
+        Status status,
+        AccountDTO account,
+        Set<FileDTO> files,
+        ReactionSummaryDTO reactions,
+        int commentCount,
+        Long replyToId) {
+    public static PostDTO from(NkPost p, ReactionSummaryDTO reactions) {
+        return new PostDTO(
+                p.getId(),
+                p.getContent(),
+                p.getAt(),
+                p.getLastUpdate(),
+                p.getVisibility(),
+                p.getStatus(),
+                AccountDTO.from(p.getAccount()),
+                p.getFiles().stream().map(FileDTO::from).collect(Collectors.toSet()),
+                reactions,
+                p.getCommentCount(),
+                p.getPostReply() != null ? p.getPostReply().getId() : null);
+    }
 }

@@ -9,6 +9,7 @@ import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -51,12 +52,29 @@ public interface PostRepository extends JpaRepository<NkPost, Long> {
   // JOIN FETCH post.comments comments JOIN FETCH post.attachments attachments
 
   // @Query("SELECT post FROM NkPost post " +
-  //     "LEFT JOIN FETCH post.account account " +
-  //     "LEFT JOIN FETCH post.postReply postReply " +
-  //     "LEFT JOIN FETCH post.comments comments " +
-  //     "LEFT JOIN FETCH post.attachments attachments " +
-  //     "WHERE post.id = ?1")
+  // "LEFT JOIN FETCH post.account account " +
+  // "LEFT JOIN FETCH post.postReply postReply " +
+  // "LEFT JOIN FETCH post.comments comments " +
+  // "LEFT JOIN FETCH post.attachments attachments " +
+  // "WHERE post.id = ?1")
   Optional<NkPost> findById(Long id);
+
   Page<NkPost> findByAccount(NkAccount account, Pageable pageable);
+
+  /**
+   * Use an @EntityGraph to fetch account + files in one go:
+   * @param status
+   * @param pageable
+   * @return
+   */
+  @EntityGraph(attributePaths = { "account", "files" })
   Page<NkPost> findByStatusOrderByAtDesc(Status status, Pageable pageable);
+
+  @Query("""
+          SELECT p FROM NkPost p
+          LEFT JOIN FETCH p.account
+          LEFT JOIN FETCH p.files
+          WHERE p.status = 'PUBLISHED'
+      """)
+  Page<NkPost> findAllWithRelations(Pageable pageable);
 }
