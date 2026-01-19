@@ -2,8 +2,8 @@ package org.ngelmakproject.web.rest;
 
 import java.util.concurrent.TimeUnit;
 
-import org.ngelmakproject.domain.NkFeed;
 import org.ngelmakproject.service.FeedService;
+import org.ngelmakproject.web.rest.dto.FeedDTO;
 import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,11 +44,11 @@ public class FeedResource {
      *         of feeds in body.
      */
     @GetMapping("")
-    public ResponseEntity<PageDTO<NkFeed>> getFeeds(@RequestParam(value = "q", defaultValue = "") String query,
+    public ResponseEntity<PageDTO<FeedDTO>> getFeeds(@RequestParam(value = "q", defaultValue = "") String query,
             Pageable pageable) {
         log.debug("REST request to get a page of Feeds : {}", query);
 
-        PageDTO<NkFeed> pageDTO;
+        PageDTO<FeedDTO> pageDTO;
         pageDTO = feedService.getFeed(pageable);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
                 .body(pageDTO);
