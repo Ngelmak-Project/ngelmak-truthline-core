@@ -52,9 +52,7 @@ spring:
     cache-period: 86400
 
 server:
-  host: acemagic
   port: 5742
-  protocol: http
 
 spring.devtools.livereload.port: 35743
 
@@ -95,3 +93,9 @@ file:
     access.location: /public
   private:
     access.location: /private
+
+gateway:
+  public:
+    host: acemagic
+    protocol: http
+    port: 4000

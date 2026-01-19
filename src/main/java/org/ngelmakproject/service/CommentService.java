@@ -15,8 +15,6 @@ import org.ngelmakproject.service.storage.FileStorageService;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,25 +29,19 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional
 public class CommentService {
 
-    @Value("${server.host}")
-    private String host;
-
-    @Value("${server.port}")
-    private Integer port;
-
     private static final String ENTITY_NAME = "comment";
     private static final Logger log = LoggerFactory.getLogger(CommentService.class);
 
-    @Autowired
-    private FileStorageService fileStorageService;
-
-    @Autowired
-    private AccountService nkAccountService;
+    private final FileStorageService fileStorageService;
+    private final AccountService nkAccountService;
 
     private final CommentRepository commentRepository;
 
-    public CommentService(CommentRepository commentRepository) {
+    public CommentService(CommentRepository commentRepository, FileStorageService fileStorageService,
+            AccountService nkAccountService) {
         this.commentRepository = commentRepository;
+        this.fileStorageService = fileStorageService;
+        this.nkAccountService = nkAccountService;
     }
 
     /**

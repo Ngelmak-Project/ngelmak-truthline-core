@@ -35,12 +35,14 @@ public class FileStorageService {
   @Value("${file.private.access.location}")
   private String privateAccessLocation;
 
-  @Value("${server.host}")
-  private String host;
-  @Value("${server.port}")
-  private Integer port;
-  @Value("${server.protocol}")
-  private String protocol;
+  @Value("${gateway.public.host}")
+  private String gatewayHost;
+
+  @Value("${gateway.public.port}")
+  private Integer gatewayPort;
+
+  @Value("${gateway.public.protocol}")
+  private String gatewayProtocol;
 
   public Path root(String... dirs) {
     return Paths.get(location, dirs).toAbsolutePath();
@@ -133,26 +135,23 @@ public class FileStorageService {
    */
   private URL toUrl(Path path, boolean isPublic) throws MalformedURLException {
     path = root().relativize(path); // child path
-    String file = String.format("/%s/%s", isPublic ? publicAccessLocation : privateAccessLocation, path.toString());
-    file = clean(file);
-    return new URL(this.protocol, this.host, this.port, file);
+    String urlPath = String.format("/%s/%s", isPublic ? publicAccessLocation : privateAccessLocation, path.toString());
+    urlPath = clean(urlPath);
+    // [TODO] Later this should be done without showing a port on the deployment
+    // https://api.ngelmak.com/public/NKM-20250119-a1b2c3d4.png
+    URL url = new URL(this.gatewayProtocol, this.gatewayHost, this.gatewayPort, urlPath);
+    return url;
   }
 
   /**
    * https://api.ngelmak.com/public/8f3c2a1d.png
    * → /var/ngelmak/storage/8f3c2a1d.png
-
+   * 
    * @param url
    * @return
    * @throws MalformedURLException
    */
   private Path toPath(URL url) throws MalformedURLException {
-    // String file = url.getFile();
-    // file = file.replace(this.privateAccessLocation,
-    // "").replace(this.publicAccessLocation, "");
-    // file = clean(file);
-    // return root(file);
-
     String path = url.getPath();
     if (path.startsWith("/" + publicAccessLocation + "/")) {
       path = path.substring(publicAccessLocation.length() + 2);
