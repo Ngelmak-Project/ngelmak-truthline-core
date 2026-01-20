@@ -76,6 +76,24 @@ public class FeedService {
         feedRepository.saveAll(feeds);
     }
 
+    /**
+     * Retrieves a pageable list of validated posts enriched with:
+     * - minimal account information (via EntityGraph on the repository)
+     * - attached files (also via EntityGraph)
+     * - aggregated reaction summaries (emoji → count + current user reaction)
+     * - commentCount already stored on NkPost (no comment fetching required)
+     *
+     * <p>
+     * This method avoids N+1 queries by:
+     * 1. Fetching posts with account + files in a single query
+     * 2. Fetching all reactions for all posts in one bulk query
+     * 3. Building reaction summaries in memory
+     * 4. Mapping everything into PostDTO objects
+     * </p>
+     * 
+     * @param pageable
+     * @return
+     */
     public PageDTO<FeedDTO> getFeed(Pageable pageable) {
         // 1. Fetch feed entries with posts, accounts, and files
         Optional<NkAccount> optional = accountService.findOneByCurrentUser();
@@ -104,19 +122,17 @@ public class FeedService {
                 .toList();
         // 2. Bulk fetch reactions for all posts in the feed
         List<NkReaction> reactions = reactionRepository.findByPostIds(postIds);
-        // 3. Build reaction summaries
-        Map<Long, ReactionSummaryDTO> reactionMap = PostService.buildReactionSummaries(reactions, optional.map(NkAccount::getId).orElse(null));
+        // 3. Group reactions by postId
+        Map<Long, List<NkReaction>> reactionsByPost = ReactionService.groupReactionsByPost(reactions);
         // 4. Map feed entries to DTOs
         List<FeedDTO> feedDTOs = feeds.stream().map(feed -> {
             var post = feed.getPost();
-            ReactionSummaryDTO summary = reactionMap.getOrDefault(
-                    post.getId(),
-                    new ReactionSummaryDTO(Map.of(), null));
-
-            PostDTO postDTO = PostDTO.from(post, summary);
-
-            return FeedDTO.from(feed.getId(), postDTO);
+            List<NkReaction> postReactions = reactionsByPost.getOrDefault(post.getId(), List.of());
+            ReactionSummaryDTO summary = ReactionSummaryDTO.from(postReactions,
+                    optional.map(NkAccount::getId).orElse(null));
+            return FeedDTO.from(feed.getId(), PostDTO.from(post, summary));
         }).toList();
+
         Page<FeedDTO> page = new PageImpl<>(feedDTOs, pageable, feedDTOs.size());
         return new PageDTO<>(page);
     }

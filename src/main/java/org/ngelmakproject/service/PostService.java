@@ -1,10 +1,8 @@
 package org.ngelmakproject.service;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -12,14 +10,11 @@ import org.ngelmakproject.domain.NkAccount;
 import org.ngelmakproject.domain.NkComment;
 import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.domain.NkPost;
-import org.ngelmakproject.domain.NkReaction;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.PostRepository;
 import org.ngelmakproject.repository.ReactionRepository;
 import org.ngelmakproject.web.rest.dto.PageDTO;
-import org.ngelmakproject.web.rest.dto.PostDTO;
-import org.ngelmakproject.web.rest.dto.ReactionSummaryDTO;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.ngelmakproject.web.rest.errors.ResourceNotFoundException;
@@ -152,101 +147,6 @@ public class PostService {
                     })
                     .orElseThrow(() -> new ResourceNotFoundException("Entity not found", ENTITY_NAME, "idnotfound"));
         }).orElseThrow(AccountNotFoundException::new);
-    }
-
-    /**
-     * Retrieves a pageable list of validated posts enriched with:
-     * - minimal account information (via EntityGraph on the repository)
-     * - attached files (also via EntityGraph)
-     * - aggregated reaction summaries (emoji → count + current user reaction)
-     * - commentCount already stored on NkPost (no comment fetching required)
-     *
-     * This method avoids N+1 queries by:
-     * 1. Fetching posts with account + files in a single query
-     * 2. Fetching all reactions for all posts in one bulk query
-     * 3. Building reaction summaries in memory
-     * 4. Mapping everything into PostDTO objects
-     *
-     * @param pageable pagination information (page number, size, sort)
-     * @return a page of PostDTO objects ready for API consumption
-     */
-    public Slice<PostDTO> getPosts(Pageable pageable) {
-        // 1. Fetch posts with account + files using an EntityGraph (no N+1 here)
-        Slice<NkPost> posts = postRepository.findByStatusOrderByAtDesc(
-                Status.VALIDATED,
-                pageable);
-
-        // Extract post IDs for bulk operations
-        List<Long> postIds = posts.stream()
-                .map(NkPost::getId)
-                .toList();
-
-        // 2. Bulk fetch all reactions for all posts in the page
-        // This avoids N+1 queries for reactions
-        List<NkReaction> reactions = reactionRepository.findByPostIds(postIds);
-
-        // 3. Build reaction summaries (emoji counts + user reaction)
-        // Passing null for currentUserId for now — replace with actual user ID later
-        Map<Long, ReactionSummaryDTO> reactionMap = PostService.buildReactionSummaries(reactions, null);
-
-        // 4. Map each NkPost to PostDTO, injecting reaction summary and commentCount
-        return posts.map(post -> PostDTO.from(
-                post,
-                reactionMap.getOrDefault(post.getId(), new ReactionSummaryDTO(Map.of(), null))));
-    }
-
-    /**
-     * Builds a map of reaction summaries for a list of reactions.
-     *
-     * Input:
-     * - A flat list of NkReaction objects (for many posts)
-     * - The current user ID (nullable)
-     *
-     * Output:
-     * - A Map keyed by postId
-     * - Each value is a ReactionSummaryDTO containing:
-     * • counts per emoji
-     * • the emoji used by the current user (if any)
-     *
-     * This method is N+1 safe because it operates entirely in memory
-     * after a single bulk fetch of reactions.
-     */
-    public static Map<Long, ReactionSummaryDTO> buildReactionSummaries(
-            List<NkReaction> reactions,
-            Long currentUserId) {
-        // Temporary structure: postId → (emoji → count)
-        Map<Long, Map<String, Integer>> countsByPost = new HashMap<>();
-
-        // Temporary structure: postId → emoji reacted by current user
-        Map<Long, String> userReactionByPost = new HashMap<>();
-
-        for (NkReaction reaction : reactions) {
-            Long postId = reaction.getPost().getId();
-            String emoji = reaction.getEmoji();
-
-            // Increment emoji count for this post
-            countsByPost
-                    .computeIfAbsent(postId, id -> new HashMap<>())
-                    .merge(emoji, 1, Integer::sum);
-
-            // Track the current user's reaction (if applicable)
-            if (currentUserId != null && currentUserId.equals(reaction.getAccount().getId())) {
-                userReactionByPost.put(postId, emoji);
-            }
-        }
-
-        // Final result: postId → ReactionSummaryDTO
-        Map<Long, ReactionSummaryDTO> result = new HashMap<>();
-
-        for (Map.Entry<Long, Map<String, Integer>> entry : countsByPost.entrySet()) {
-            Long postId = entry.getKey();
-            Map<String, Integer> emojiCounts = entry.getValue();
-            String userEmoji = userReactionByPost.get(postId);
-
-            result.put(postId, new ReactionSummaryDTO(emojiCounts, userEmoji));
-        }
-
-        return result;
     }
 
     /**

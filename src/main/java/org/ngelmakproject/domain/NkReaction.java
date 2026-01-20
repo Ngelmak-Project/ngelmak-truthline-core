@@ -25,6 +25,7 @@ public class NkReaction {
     private NkPost post;
 
     @Column(name = "account_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     private NkAccount account;
 
     @Column(name = "emoji", nullable = false)

@@ -1,5 +1,10 @@
 package org.ngelmakproject.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.ngelmakproject.domain.NkReaction;
 import org.ngelmakproject.repository.ReactionRepository;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
@@ -94,4 +99,22 @@ public class ReactionService {
         // fast response.
         reactionRepository.deleteById(id);
     }
+
+    /**
+     * Groups reactions by post ID.
+     *
+     * @param reactions flat list of reactions for many posts
+     * @return map: postId → list of reactions
+     */
+    public static Map<Long, List<NkReaction>> groupReactionsByPost(List<NkReaction> reactions) {
+        Map<Long, List<NkReaction>> map = new HashMap<>();
+
+        for (NkReaction reaction : reactions) {
+            Long postId = reaction.getPost().getId();
+            map.computeIfAbsent(postId, id -> new ArrayList<>()).add(reaction);
+        }
+
+        return map;
+    }
+
 }
