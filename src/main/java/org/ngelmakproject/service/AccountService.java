@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -178,18 +180,38 @@ public class AccountService {
     }
 
     /**
-     * Get one account by id.
+     * Retrieves the Account associated with the currently authenticated user.
      *
-     * @param id the id of the entity.
-     * @return the entity.
+     * <p>
+     * This method is designed to be safe even when invoked in contexts where
+     * authentication is not guaranteed (e.g., unsecured endpoints). It performs
+     * several defensive checks to avoid runtime exceptions such as
+     * {@link ClassCastException} or {@link NullPointerException}.
+     * </p>
+     *
+     * @return an {@code Optional<NkAccount>} for the authenticated user, or empty
+     *         if
+     *         no valid authenticated user is present.
      */
     @Transactional(readOnly = true)
     public Optional<NkAccount> findOneByCurrentUser() {
-        Long userId = ((UserPrincipal) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal())
-                .getUserId();
-        return accountRepository.findOneByUser(userId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // No authentication available
+        if (authentication == null) {
+            return Optional.empty();
+        }
+        // Anonymous or not authenticated
+        if (!authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            return Optional.empty();
+        }
+        Object principal = authentication.getPrincipal();
+        // Principal is not your expected custom user type
+        if (!(principal instanceof UserPrincipal userPrincipal)) {
+            return Optional.empty();
+        }
+        // [TODO] Save the account if exists into cache.
+        return accountRepository.findOneByUser(userPrincipal.getUserId());
     }
 
     /**
