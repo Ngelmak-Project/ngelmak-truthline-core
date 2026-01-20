@@ -9,6 +9,7 @@ import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -59,7 +60,7 @@ public interface PostRepository extends JpaRepository<NkPost, Long> {
   // "WHERE post.id = ?1")
   Optional<NkPost> findById(Long id);
 
-  Page<NkPost> findByAccount(NkAccount account, Pageable pageable);
+  Slice<NkPost> findByAccount(NkAccount account, Pageable pageable);
 
   /**
    * Use an @EntityGraph to fetch account + files in one go:
@@ -68,7 +69,7 @@ public interface PostRepository extends JpaRepository<NkPost, Long> {
    * @return
    */
   @EntityGraph(attributePaths = { "account", "files" })
-  Page<NkPost> findByStatusOrderByAtDesc(Status status, Pageable pageable);
+  Slice<NkPost> findByStatusOrderByAtDesc(Status status, Pageable pageable);
 
   @Query("""
           SELECT p FROM NkPost p
@@ -76,5 +77,5 @@ public interface PostRepository extends JpaRepository<NkPost, Long> {
           LEFT JOIN FETCH p.files
           WHERE p.status = 'PUBLISHED'
       """)
-  Page<NkPost> findAllWithRelations(Pageable pageable);
+  Slice<NkPost> findAllWithRelations(Pageable pageable);
 }

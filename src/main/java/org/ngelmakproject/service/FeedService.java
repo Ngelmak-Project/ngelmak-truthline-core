@@ -57,9 +57,11 @@ public class FeedService {
      * Create a personalized feed for each user based on their connections and
      * recommendations.
      * 
+     * <p>
      * "Fan-Out on Write” approach, where each user has their own feed, and new
      * posts are propagated to all followers’ feeds upon creation. This allows fo
      * efficient feed retrieval.
+     * </p>
      * 
      * @param post
      */
@@ -73,28 +75,6 @@ public class FeedService {
         }).collect(Collectors.toList());
         feedRepository.saveAll(feeds);
     }
-
-    // public PageDTO<FeedDTO> getFeed(Pageable pageable) {
-    //     Optional<NkAccount> optional = accountService.findOneByCurrentUser();
-    //     List<FeedDTO> allFeeds = new ArrayList<>();
-    //     if (optional.isPresent()) {
-    //         log.debug("Request to retrieve Feeds for Account {}.", optional.get());
-    //         List<NkFeed> followingAccountsFeed = feedRepository.findByFeedOwner(optional.get(), pageable).getContent();
-    //         FeedDTO.from()
-    //         allFeeds.FeedDTO(followingAccountsFeed);
-    //     }
-    //     allFeeds.addAll(this.postService.getPosts(pageable).getContent().stream().map(post -> {
-    //         FeedDTO feed = new NkFeed();
-    //         feed.setPost(post);
-    //         return feed;
-    //     }).toList());
-    //     // [TODO] Get recommended posts (assuming a method to fetch recommendations)
-    //     allFeeds.sort((a, b) -> {
-    //         return -1 * a.getPost().getAt().compareTo(b.getPost().getAt());
-    //     });
-    //     Page<NkFeed> page = new PageImpl<>(allFeeds, pageable, allFeeds.size());
-    //     return new PageDTO<>(page);
-    // }
 
     public PageDTO<FeedDTO> getFeed(Pageable pageable) {
         // 1. Fetch feed entries with posts, accounts, and files
@@ -112,7 +92,7 @@ public class FeedService {
                     feed.setPost(post);
                     return feed;
                 }).toList());
-        // [TODO] Get recommended posts (assuming a method to fetch recommendations)
+        // [TODO] Get recommended posts (assuming a method to fetch recommendations
         feeds.sort((a, b) -> {
             return -1 * a.getPost().getAt().compareTo(b.getPost().getAt());
         });

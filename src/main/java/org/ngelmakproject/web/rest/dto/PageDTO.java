@@ -4,16 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class PageDTO<T> {
-
   private List<T> content; // The actual page content (list of elements)
   private int number; // Current page number
   private int size; // Number of elements per page
@@ -39,4 +32,98 @@ public class PageDTO<T> {
         .map(order -> new SortDTO(order.getProperty(), order.getDirection().name()))
         .collect(Collectors.toList());
   }
+
+  public PageDTO(Slice<T> page) {
+    content = page.getContent();
+    number = page.getNumber();
+    size = page.getSize();
+    isFirst = page.isFirst();
+    isLast = page.isLast();
+    hasNext = page.hasNext();
+    hasPrevious = page.hasPrevious();
+    sorts = page.getSort().stream()
+        .map(order -> new SortDTO(order.getProperty(), order.getDirection().name()))
+        .collect(Collectors.toList());
+  }
+
+  public List<T> getContent() {
+    return content;
+  }
+
+  public void setContent(List<T> content) {
+    this.content = content;
+  }
+
+  public int getNumber() {
+    return number;
+  }
+
+  public void setNumber(int number) {
+    this.number = number;
+  }
+
+  public int getSize() {
+    return size;
+  }
+
+  public void setSize(int size) {
+    this.size = size;
+  }
+
+  public long getTotalElements() {
+    return totalElements;
+  }
+
+  public void setTotalElements(long totalElements) {
+    this.totalElements = totalElements;
+  }
+
+  public int getTotalPages() {
+    return totalPages;
+  }
+
+  public void setTotalPages(int totalPages) {
+    this.totalPages = totalPages;
+  }
+
+  public boolean isLast() {
+    return isLast;
+  }
+
+  public void setLast(boolean isLast) {
+    this.isLast = isLast;
+  }
+
+  public boolean isFirst() {
+    return isFirst;
+  }
+
+  public void setFirst(boolean isFirst) {
+    this.isFirst = isFirst;
+  }
+
+  public boolean isHasNext() {
+    return hasNext;
+  }
+
+  public void setHasNext(boolean hasNext) {
+    this.hasNext = hasNext;
+  }
+
+  public boolean isHasPrevious() {
+    return hasPrevious;
+  }
+
+  public void setHasPrevious(boolean hasPrevious) {
+    this.hasPrevious = hasPrevious;
+  }
+
+  public List<SortDTO> getSorts() {
+    return sorts;
+  }
+
+  public void setSorts(List<SortDTO> sorts) {
+    this.sorts = sorts;
+  }
+
 }

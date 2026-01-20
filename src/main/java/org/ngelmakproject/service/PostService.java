@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -169,9 +170,9 @@ public class PostService {
      * @param pageable pagination information (page number, size, sort)
      * @return a page of PostDTO objects ready for API consumption
      */
-    public Page<PostDTO> getPosts(Pageable pageable) {
+    public Slice<PostDTO> getPosts(Pageable pageable) {
         // 1. Fetch posts with account + files using an EntityGraph (no N+1 here)
-        Page<NkPost> posts = postRepository.findByStatusOrderByAtDesc(
+        Slice<NkPost> posts = postRepository.findByStatusOrderByAtDesc(
                 Status.VALIDATED,
                 pageable);
 
@@ -260,7 +261,7 @@ public class PostService {
         if (query.length() > 5) {
             return fullTextSearch(query, pageable);
         }
-        Page<NkPost> page = postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
+        Slice<NkPost> page = postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
 
         List<NkComment> comments = commentService.findTopComments(page.getContent(), 10);
         page.getContent().stream().forEach(p -> {
@@ -306,7 +307,7 @@ public class PostService {
      * @return
      */
     @Transactional(readOnly = true)
-    public Page<NkPost> getRecommendedPosts(Pageable pageable) {
+    public Slice<NkPost> getRecommendedPosts(Pageable pageable) {
         log.debug("Post to get recommended Post");
         return postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
     }
