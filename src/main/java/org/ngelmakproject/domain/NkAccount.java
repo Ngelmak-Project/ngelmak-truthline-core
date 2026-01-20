@@ -84,7 +84,7 @@ public class NkAccount implements Serializable {
      * a default configuration can be set for visibility of posts and their eventual
      * attachments.
      */
-    @OneToOne(fetch = FetchType.EAGER, optional = true)
+    @OneToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(unique = true)
     private NkConfig configuration;
 

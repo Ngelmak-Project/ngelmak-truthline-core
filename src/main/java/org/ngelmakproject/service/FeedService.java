@@ -82,8 +82,9 @@ public class FeedService {
         List<NkFeed> feeds = new ArrayList<>();
         if (optional.isPresent()) {
             log.debug("Request to retrieve Feeds for Account {}.", optional.get());
-            // 1. Fetch feed entries with posts, accounts, and files
-            feeds = feedRepository.findByFeedOwner(optional.get(), pageable).getContent();
+            // Fetch feed entries with posts, accounts, and files
+            var page = feedRepository.findByFeedOwner(optional.get(), pageable);
+            feeds = new ArrayList<>(page.getContent());
         }
         feeds.addAll(this.postRepository.findByStatusOrderByAtDesc(
                 Status.VALIDATED,
