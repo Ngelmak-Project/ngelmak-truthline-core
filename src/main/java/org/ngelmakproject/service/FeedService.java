@@ -124,7 +124,7 @@ public class FeedService {
         // 2. Bulk fetch reactions for all posts in the feed
         List<NkReaction> reactions = reactionRepository.findByPostIds(postIds);
         // 3. Build reaction summaries
-        Map<Long, ReactionSummaryDTO> reactionMap = PostService.buildReactionSummaries(reactions, optional.map(NkAccount::getId).orElseGet(null));
+        Map<Long, ReactionSummaryDTO> reactionMap = PostService.buildReactionSummaries(reactions, optional.map(NkAccount::getId).orElse(null));
         // 4. Map feed entries to DTOs
         List<FeedDTO> feedDTOs = feeds.stream().map(feed -> {
             var post = feed.getPost();
