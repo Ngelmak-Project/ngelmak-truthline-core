@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,6 +38,46 @@ public class FileService {
         this.fileStorageService = fileStorageService;
     }
 
+    public List<NkFile> save(List<MultipartFile> medias) {
+        log.debug("Request to save {}x file(s)", medias.size());
+        if (medias.isEmpty()) {
+            return List.of();
+        }
+        List<NkFile> allFiles = new ArrayList<>();
+        Map<String, MultipartFile> hashToMedia = new HashMap<>();
+        MultipartFile _media = null;
+        // Convert all multipart files to NkFile objects with hash
+        for (int i = 0; i < medias.size(); i++) {
+            _media = medias.get(i);
+            NkFile media = fromMultipartToFile(_media);
+            allFiles.add(media);
+            hashToMedia.put(media.getHash(), _media);
+        }
+
+        // Query DB once for existing hashes
+        Map<String, NkFile> existing = fileRepository.findByHashIn(hashToMedia.keySet())
+                .stream()
+                .collect(Collectors.toMap(NkFile::getHash, f -> f));
+
+        // Filter out existing files → keep only new ones
+        List<NkFile> newFiles = allFiles.stream()
+                .filter(f -> !existing.containsKey(f.getHash()))
+                // Save the medias locally.
+                .map(file -> {
+                    URL url = fileStorageService.store(hashToMedia.get(file.getHash()), true, file.getFilename());
+                    file.setUrl(url.toString()); // update the url to the file.
+                    return file;
+                })
+                .map(fileRepository::save) // Persist new files in one DB call
+                .toList();
+
+        // Build final result list (existing + new)
+        List<NkFile> files = new ArrayList<>(newFiles); // add new saved files.
+        existing.forEach((hash, file) -> files.add(file)); // add existing files to the list.
+
+        return files;
+    }
+
     public List<NkFile> save(List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to save {}x file(s) and {}x cover(s)", medias.size(), covers.size());
         if (medias.isEmpty()) {
@@ -44,44 +85,40 @@ public class FileService {
         }
         List<NkFile> allFiles = new ArrayList<>();
         MultipartFile _media, _cover = null;
-        URL url = null;
+        Map<String, MultipartFile> hashToMedia = new HashMap<>();
         // Convert all multipart files to NkFile objects with hash
         for (int i = 0; i < medias.size(); i++) {
             // MEDIA
             _media = medias.get(i);
-            NkFile media = MultipartToFile(_media);
-            url = fileStorageService.store(_media, true, media.getFilename());
-            media.setUrl(url.toString());
+            NkFile media = fromMultipartToFile(_media);
+            hashToMedia.put(media.getHash(), _media);
             allFiles.add(media);
             // COVER (optional)
             _cover = covers.get(i);
             if (_cover != null && !_cover.isEmpty()) {
-                NkFile cover = MultipartToFile(_cover);
-                url = fileStorageService.store(_cover, true, cover.getFilename());
-                cover.setUrl(url.toString());
+                NkFile cover = fromMultipartToFile(_cover);
+                hashToMedia.put(cover.getHash(), _cover);
                 media.setCover(cover); // set it as cover.
                 allFiles.add(cover);
             }
         }
 
-        // Gather all hashes
-        List<String> hashes = allFiles.stream()
-                .map(NkFile::getHash)
-                .distinct()
-                .toList();
-
         // Query DB once for existing hashes
-        Map<String, NkFile> existing = fileRepository.findByHashIn(hashes)
+        Map<String, NkFile> existing = fileRepository.findByHashIn(hashToMedia.keySet())
                 .stream()
                 .collect(Collectors.toMap(NkFile::getHash, f -> f));
 
         // Filter out existing files → keep only new ones
         List<NkFile> newFiles = allFiles.stream()
                 .filter(f -> !existing.containsKey(f.getHash()))
+                // Save the medias locally.
+                .map(file -> {
+                    URL url = fileStorageService.store(hashToMedia.get(file.getHash()), true, file.getFilename());
+                    file.setUrl(url.toString()); // update the url to the file.
+                    return file;
+                })
+                .map(fileRepository::save) // Persist new files in one DB call
                 .toList();
-
-        // Persist new files in one DB call
-        newFiles = fileRepository.saveAll(newFiles);
 
         // Build final result list (existing + new)
         List<NkFile> files = new ArrayList<>(newFiles); // add new saved files.
@@ -113,24 +150,22 @@ public class FileService {
         fileRepository.deleteById(id);
     }
 
-    private NkFile MultipartToFile(MultipartFile media) {
+    private NkFile fromMultipartToFile(MultipartFile media) {
         String name = media.getOriginalFilename();
         String ext = (name != null && name.contains(".")) ? name.substring(name.lastIndexOf('.') + 1).toLowerCase()
                 : "";
         NkFile file = new NkFile();
         String hash = computeHash(media);
-        String filename = buildFilename("NK", hash, ext);
+        // Format name
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE); // yyyyMMdd
+        String shortHash = hash.substring(0, 8);
+        String filename = "Nk-" + date + "-" + shortHash + "." + ext;
+        
         file.setHash(hash);
         file.setFilename(filename);
         file.setType(media.getContentType());
         file.setSize(media.getSize());
         return file;
-    }
-
-    private String buildFilename(String prefix, String hash, String ext) {
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE); // yyyyMMdd
-        String shortHash = hash.substring(0, 8);
-        return prefix + "-" + date + "-" + shortHash + "." + ext;
     }
 
     private String computeHash(MultipartFile file) {

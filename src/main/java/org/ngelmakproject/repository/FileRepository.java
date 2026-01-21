@@ -14,5 +14,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FileRepository extends JpaRepository<NkFile, Long> {
   Optional<NkFile> findByHash(String hash);
-  List<NkFile> findByHashIn(List<String> hashes);
+  List<NkFile> findByHashIn(Iterable<String> hashes);
 }
