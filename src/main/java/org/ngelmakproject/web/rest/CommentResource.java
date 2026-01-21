@@ -3,23 +3,21 @@ package org.ngelmakproject.web.rest;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkComment;
-import org.ngelmakproject.domain.NkPost;
+import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.repository.CommentRepository;
 import org.ngelmakproject.service.CommentService;
+import org.ngelmakproject.web.rest.dto.CommentDTO;
+import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.ngelmakproject.web.rest.util.HeaderUtil;
-import org.ngelmakproject.web.rest.util.PaginationUtil;
-import org.ngelmakproject.web.rest.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * REST controller for managing {@link org.ngelmakproject.domain.NkComment}.
@@ -47,7 +44,6 @@ public class CommentResource {
     private String applicationName;
 
     private final CommentService commentService;
-
     private final CommentRepository commentRepository;
 
     public CommentResource(CommentService commentService, CommentRepository commentRepository) {
@@ -67,13 +63,13 @@ public class CommentResource {
      */
     @PostMapping("")
     public ResponseEntity<NkComment> createComment(@RequestPart NkComment comment,
-            @RequestPart(required = false) MultipartFile file)
+            @RequestPart(required = false) Optional<MultipartFile> media)
             throws URISyntaxException, MalformedURLException {
-        log.debug("REST request to save NkComment : {}", comment);
+        log.info("REST request to save Comment : {} + {}x media", comment, media.map(e -> 1).orElse(0));
         if (comment.getId() != null) {
             throw new BadRequestAlertException("A new comment cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        comment = commentService.save(comment, file);
+        comment = commentService.save(comment, media);
         return ResponseEntity.created(new URI("/api/comments/" + comment.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         comment.getId().toString()))
@@ -93,34 +89,21 @@ public class CommentResource {
      */
     @PutMapping("")
     public ResponseEntity<NkComment> updateComment(
-        @RequestPart NkComment comment,
-        @RequestPart(required = false) MultipartFile file) throws URISyntaxException {
-        log.debug("REST request to update NkComment : {}", comment);
+            @RequestPart NkComment comment,
+            @RequestPart(required = false) Optional<NkFile> deletedFile,
+            @RequestPart(required = false) Optional<MultipartFile> media
+        ) throws URISyntaxException {
+        log.debug("REST request to update Comment : {} + {}x media, and {}x to be deleted", comment, media.map(e -> 1).orElse(0), deletedFile.map(e -> 1).orElse(0));
+
         if (comment.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
 
-        comment = commentService.update(comment, file);
+        comment = commentService.update(comment, media, deletedFile);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME,
                         comment.getId().toString()))
                 .body(comment);
-    }
-
-    /**
-     * {@code GET  /comments} : get all the comments.
-     *
-     * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
-     *         of comments in body.
-     */
-    @GetMapping("")
-    public ResponseEntity<List<NkComment>> getAllComments(Pageable pageable) {
-        log.debug("REST request to get a page of Comments");
-        Page<NkComment> page = commentService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil
-                .generatePaginationHttpHeaders(page, ServletUriComponentsBuilder.fromCurrentRequest().toUriString());
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -130,24 +113,10 @@ public class CommentResource {
      *         of comments in body.
      */
     @GetMapping("/post/{id}")
-    public ResponseEntity<List<NkComment>> getAllComments(@PathVariable Long id) {
-        log.debug("REST request to get Comments of NkPost : {}", id);
-        List<NkComment> comments = commentRepository.findByPost(new NkPost().id(id));
-        return ResponseEntity.ok().body(comments);
-    }
-
-    /**
-     * {@code GET  /comments/:id} : get the "id" comment.
-     *
-     * @param id the id of the comment to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the comment, or with status {@code 404 (Not Found)}.
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<NkComment> getComment(@PathVariable("id") Long id) {
-        log.debug("REST request to get NkComment : {}", id);
-        Optional<NkComment> comment = commentService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(comment);
+    public ResponseEntity<PageDTO<CommentDTO>> getCommentsByPost(@PathVariable Long id, Pageable pageable) {
+        log.debug("REST request to get Comments of Post id : {}", id);
+        Slice<CommentDTO> page = commentRepository.findByPostOrderByAt(id, pageable).map(c -> CommentDTO.from(c));
+        return ResponseEntity.ok().body(new PageDTO<>(page));
     }
 
     /**
@@ -157,8 +126,8 @@ public class CommentResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteComment(@PathVariable("id") Long id) {
-        log.debug("REST request to delete NkComment : {}", id);
+    public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
+        log.debug("REST request to delete Comment : {}", id);
         commentService.delete(id);
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))

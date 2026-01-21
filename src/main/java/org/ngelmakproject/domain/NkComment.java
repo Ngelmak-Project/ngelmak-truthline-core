@@ -5,8 +5,6 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.ngelmakproject.domain.enumeration.Opinion;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
@@ -14,8 +12,6 @@ import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,10 +38,6 @@ public class NkComment implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "opinion")
-    private Opinion opinion;
-
     @NotNull
     @Column(name = "at", nullable = false)
     private Instant at;
@@ -58,9 +50,6 @@ public class NkComment implements Serializable {
 
     @Column(name = "content", length = 1000, nullable = false)
     private String content;
-
-    @Column(name = "url", nullable = true)
-    private String url;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @NotNull
@@ -75,6 +64,10 @@ public class NkComment implements Serializable {
     @NotNull
     @JsonIncludeProperties(value = { "id" })
     private NkAccount account;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JsonIncludeProperties(value = { "id", "url" })
+    private NkFile file;
 
     /**
      * a ticket can be related to a abusive comment.
@@ -94,22 +87,18 @@ public class NkComment implements Serializable {
     }
 
     public NkComment(Long id,
-            Opinion opinion,
             Instant at,
             Instant lastUpdate,
             Instant deletedAt,
             String content,
-            String url,
             NkPost post,
             NkComment replayto,
             NkAccount account) {
         this.id = id;
-        this.opinion = opinion;
         this.at = at;
         this.lastUpdate = lastUpdate;
         this.deletedAt = deletedAt;
         this.content = content;
-        this.url = url;
         this.post = post;
         this.replayto = replayto;
         this.account = account;
@@ -126,19 +115,6 @@ public class NkComment implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Opinion getOpinion() {
-        return this.opinion;
-    }
-
-    public NkComment opinion(Opinion opinion) {
-        this.setOpinion(opinion);
-        return this;
-    }
-
-    public void setOpinion(Opinion opinion) {
-        this.opinion = opinion;
     }
 
     public Instant getAt() {
@@ -191,23 +167,6 @@ public class NkComment implements Serializable {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public boolean hasUrl() {
-        return (url != null) && !url.isEmpty();
-    }
-
-    public String getUrl() {
-        return this.url;
-    }
-
-    public NkComment url(String url) {
-        this.setUrl(url);
-        return this;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 
     public Set<NkTicket> getReports() {
@@ -298,16 +257,29 @@ public class NkComment implements Serializable {
         return this;
     }
 
+    public NkFile getFile() {
+        return this.file;
+    }
+
+    public void setFile(NkFile file) {
+        this.file = file;
+    }
+
+    public NkComment file(NkFile file) {
+        this.setFile(file);
+        return this;
+    }
+
     public NkAccount getAccount() {
         return this.account;
     }
 
-    public void setAccount(NkAccount nkAccount) {
-        this.account = nkAccount;
+    public void setAccount(NkAccount account) {
+        this.account = account;
     }
 
-    public NkComment account(NkAccount nkAccount) {
-        this.setAccount(nkAccount);
+    public NkComment account(NkAccount account) {
+        this.setAccount(account);
         return this;
     }
 
@@ -332,11 +304,9 @@ public class NkComment implements Serializable {
     public String toString() {
         return "NkComment{" +
                 "id=" + getId() +
-                ", opinion='" + getOpinion() + "'" +
                 ", at='" + getAt() + "'" +
                 ", lastUpdate='" + getLastUpdate() + "'" +
                 ", content='" + getContent() + "'" +
-                ", url='" + getUrl() + "'" +
                 "}";
     }
 }
