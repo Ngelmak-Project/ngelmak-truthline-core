@@ -48,7 +48,6 @@ public class PostResource {
     private String applicationName;
 
     private final PostService postService;
-
     private final PostRepository postRepository;
 
     public PostResource(PostService postService, PostRepository postRepository) {
