@@ -13,7 +13,6 @@ import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.PostRepository;
-import org.ngelmakproject.repository.ReactionRepository;
 import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
@@ -50,19 +49,16 @@ public class PostService {
     private final FileService fileService;
     private final AccountService accountService;
     private final EntityManager entityManager;
-    private final ReactionRepository reactionRepository;
 
     PostService(PostRepository postRepository,
             CommentService commentService,
             FileService fileService,
             AccountService accountService,
-            ReactionRepository reactionRepository,
             EntityManager entityManager) {
         this.postRepository = postRepository;
         this.commentService = commentService;
         this.fileService = fileService;
         this.accountService = accountService;
-        this.reactionRepository = reactionRepository;
         this.entityManager = entityManager;
     }
 
