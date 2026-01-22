@@ -132,10 +132,10 @@ public class NkReview implements Serializable {
 
     public void setReviews(Set<NkReview> reviews) {
         if (this.reviews != null) {
-            this.reviews.forEach(i -> i.setReplyto(null));
+            this.reviews.forEach(i -> i.setReplyTo(null));
         }
         if (reviews != null) {
-            reviews.forEach(i -> i.setReplyto(this));
+            reviews.forEach(i -> i.setReplyTo(this));
         }
         this.reviews = reviews;
     }
@@ -147,13 +147,13 @@ public class NkReview implements Serializable {
 
     public NkReview addReview(NkReview review) {
         this.reviews.add(review);
-        review.setReplyto(this);
+        review.setReplyTo(this);
         return this;
     }
 
     public NkReview removeReview(NkReview review) {
         this.reviews.remove(review);
-        review.setReplyto(null);
+        review.setReplyTo(null);
         return this;
     }
 
@@ -183,16 +183,16 @@ public class NkReview implements Serializable {
         return this;
     }
 
-    public NkReview getReplyto() {
+    public NkReview getReplyTo() {
         return this.replyto;
     }
 
-    public void setReplyto(NkReview review) {
+    public void setReplyTo(NkReview review) {
         this.replyto = review;
     }
 
     public NkReview replyto(NkReview review) {
-        this.setReplyto(review);
+        this.setReplyTo(review);
         return this;
     }
 

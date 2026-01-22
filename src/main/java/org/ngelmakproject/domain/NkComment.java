@@ -51,7 +51,7 @@ public class NkComment implements Serializable {
     @Column(name = "content", length = 1000, nullable = false)
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonIncludeProperties(value = { "id" })
     private NkPost post;
 
@@ -190,10 +190,10 @@ public class NkComment implements Serializable {
 
     public void setComments(Set<NkComment> comments) {
         if (this.comments != null) {
-            this.comments.forEach(i -> i.setReplyto(null));
+            this.comments.forEach(i -> i.setReplyTo(null));
         }
         if (comments != null) {
-            comments.forEach(i -> i.setReplyto(this));
+            comments.forEach(i -> i.setReplyTo(this));
         }
         this.comments = comments;
     }
@@ -205,13 +205,13 @@ public class NkComment implements Serializable {
 
     public NkComment addComment(NkComment comment) {
         this.comments.add(comment);
-        comment.setReplyto(this);
+        comment.setReplyTo(this);
         return this;
     }
 
     public NkComment removeComment(NkComment comment) {
         this.comments.remove(comment);
-        comment.setReplyto(null);
+        comment.setReplyTo(null);
         return this;
     }
 
@@ -228,16 +228,16 @@ public class NkComment implements Serializable {
         return this;
     }
 
-    public NkComment getReplyto() {
+    public NkComment getReplyTo() {
         return this.replyTo;
     }
 
-    public void setReplyto(NkComment comment) {
+    public void setReplyTo(NkComment comment) {
         this.replyTo = comment;
     }
 
     public NkComment replyTo(NkComment comment) {
-        this.setReplyto(comment);
+        this.setReplyTo(comment);
         return this;
     }
 

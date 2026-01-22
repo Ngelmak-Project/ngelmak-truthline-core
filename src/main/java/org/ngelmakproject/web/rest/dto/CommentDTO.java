@@ -25,7 +25,7 @@ public record CommentDTO(
                 comment.getAt(),
                 FileDTO.from(comment.getFile()),
                 AccountDTO.from(comment.getAccount()),
-                CommentDTO.from(comment.getReplyto()),
+                CommentDTO.from(comment.getReplyTo()),
                 comment.getComments().stream().map(CommentDTO::from).collect(Collectors.toSet()));
     }
 }

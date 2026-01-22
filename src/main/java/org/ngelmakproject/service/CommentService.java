@@ -67,7 +67,10 @@ public class CommentService {
                     .file(files.stream().findFirst().orElse(null)) // attach the file is exists.
                     .account(account); // set the current connected user as owner of the comment.
             // [TODO] Use Redis to record the changes.
-            this.postService.updateCommmentCount(comment.getPost().getId(), 1);
+            if (comment.getPost() != null && comment.getReplyTo() == null) {
+                this.postService.updateCommmentCount(comment.getPost().getId(), 1);
+            }
+
             return commentRepository.save(comment);
         }).orElseThrow(AccountNotFoundException::new);
     }

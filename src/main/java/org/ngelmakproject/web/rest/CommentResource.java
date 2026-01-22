@@ -3,6 +3,7 @@ package org.ngelmakproject.web.rest;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkComment;
@@ -91,9 +92,9 @@ public class CommentResource {
     public ResponseEntity<NkComment> updateComment(
             @RequestPart NkComment comment,
             @RequestPart(required = false) Optional<NkFile> deletedFile,
-            @RequestPart(required = false) Optional<MultipartFile> media
-        ) throws URISyntaxException {
-        log.debug("REST request to update Comment : {} + {}x media, and {}x to be deleted", comment, media.map(e -> 1).orElse(0), deletedFile.map(e -> 1).orElse(0));
+            @RequestPart(required = false) Optional<MultipartFile> media) throws URISyntaxException {
+        log.debug("REST request to update Comment : {} + {}x media, and {}x to be deleted", comment,
+                media.map(e -> 1).orElse(0), deletedFile.map(e -> 1).orElse(0));
 
         if (comment.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -115,9 +116,18 @@ public class CommentResource {
     @GetMapping("/post/{id}")
     public ResponseEntity<PageDTO<CommentDTO>> getCommentsByPost(@PathVariable Long id, Pageable pageable) {
         log.debug("REST request to get Comments of Post id : {} | Pageable {}", id, pageable);
-        Slice<CommentDTO> page = commentRepository.findByPostOrderByAt(id, pageable).map(c -> CommentDTO.from(c));
+        Slice<CommentDTO> page = commentRepository.findTopLevelCommentsByPost(id, pageable)
+                .map(c -> CommentDTO.from(c));
         var newPage = new PageDTO<>(page);
         return ResponseEntity.ok().body(newPage);
+    }
+
+    @GetMapping("/reply/{id}")
+    public ResponseEntity<List<CommentDTO>> getRepliesByComment(@PathVariable Long id, Pageable pageable) {
+        log.debug("REST request to get Comments of Post id : {} | Pageable {}", id, pageable);
+        List<CommentDTO> commentDTOs = commentRepository.findRepliesByComment(id)
+                .stream().map(c -> CommentDTO.from(c)).toList();
+        return ResponseEntity.ok().body(commentDTOs);
     }
 
     /**

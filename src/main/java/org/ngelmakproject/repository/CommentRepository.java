@@ -5,6 +5,7 @@ import java.util.List;
 import org.ngelmakproject.domain.NkComment;
 import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Status;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -19,17 +20,15 @@ import org.springframework.stereotype.Repository;
 @SuppressWarnings("unused")
 @Repository
 public interface CommentRepository extends JpaRepository<NkComment, Long> {
-    @Query("""
-            SELECT c FROM NkComment c
-            LEFT JOIN FETCH c.account
-            LEFT JOIN FETCH c.file
-            WHERE c.post.id = :id
-              AND c.deletedAt IS NULL
-            ORDER BY c.at
-            """)
-    Slice<NkComment> findByPostOrderByAt(@Param("id") Long id, Pageable pageable);
-
-    List<NkComment> findByPost(NkPost post);
+//     @Query("""
+//             SELECT c FROM NkComment c
+//             LEFT JOIN FETCH c.account
+//             LEFT JOIN FETCH c.file
+//             WHERE c.post.id = :id
+//               AND c.deletedAt IS NULL
+//             ORDER BY c.at
+//             """)
+//     Slice<NkComment> findByPostOrderByAt(@Param("id") Long id, Pageable pageable);
 
     // @Query("""
     // select new NkComment(
@@ -69,5 +68,24 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
             ORDER BY p.id, c.at DESC
             """, nativeQuery = true)
     List<NkComment> findTopCommentsForPosts(@Param("postIds") List<Long> postIds, @Param("limit") Integer limit);
+
+    @Query("""
+            SELECT c FROM NkComment c
+            LEFT JOIN FETCH p.post
+            LEFT JOIN FETCH p.account
+            LEFT JOIN FETCH p.file
+            WHERE c.post.id = :postId AND c.replyTo IS NULL AND c.deletedAt IS NULL
+            ORDER BY c.at DESC
+            """)
+    Slice<NkComment> findTopLevelCommentsByPost(@Param("postId") Long postId, Pageable pageable);
+
+    @Query("""
+            SELECT c FROM NkComment c
+            LEFT JOIN FETCH p.account
+            LEFT JOIN FETCH p.file
+            WHERE c.replyTo.id = :commentId AND c.deletedAt IS NULL
+            ORDER BY c.at ASC
+            """)
+    List<NkComment> findRepliesByComment(@Param("commentId") Long commentId);
 
 }
