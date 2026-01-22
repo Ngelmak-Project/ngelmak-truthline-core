@@ -71,9 +71,9 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
 
     @Query("""
             SELECT c FROM NkComment c
-            LEFT JOIN FETCH p.post
-            LEFT JOIN FETCH p.account
-            LEFT JOIN FETCH p.file
+            LEFT JOIN FETCH c.post
+            LEFT JOIN FETCH c.account
+            LEFT JOIN FETCH c.file
             WHERE c.post.id = :postId AND c.replyTo IS NULL AND c.deletedAt IS NULL
             ORDER BY c.at DESC
             """)
@@ -81,8 +81,8 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
 
     @Query("""
             SELECT c FROM NkComment c
-            LEFT JOIN FETCH p.account
-            LEFT JOIN FETCH p.file
+            LEFT JOIN FETCH c.account
+            LEFT JOIN FETCH c.file
             WHERE c.replyTo.id = :commentId AND c.deletedAt IS NULL
             ORDER BY c.at ASC
             """)
