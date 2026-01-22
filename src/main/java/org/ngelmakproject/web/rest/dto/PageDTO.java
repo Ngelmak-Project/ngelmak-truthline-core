@@ -126,4 +126,10 @@ public class PageDTO<T> {
     this.sorts = sorts;
   }
 
+  @Override
+  public String toString() {
+    return "PageDTO [number=" + number + ", size=" + size + ", totalElements=" + totalElements
+        + ", totalPages=" + totalPages + ", isLast=" + isLast + ", isFirst=" + isFirst + ", hasNext=" + hasNext
+        + ", hasPrevious=" + hasPrevious + ", sorts=" + sorts + "]";
+  }  
 }

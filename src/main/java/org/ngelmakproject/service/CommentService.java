@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
  * {@link org.ngelmakproject.domain.NkComment}.
  */
 @Service
+@Transactional
 public class CommentService {
 
     private static final String ENTITY_NAME = "comment";
@@ -50,7 +51,6 @@ public class CommentService {
      * @return the persisted entity.
      * @throws MalformedURLException
      */
-    @Transactional
     public NkComment save(NkComment comment, Optional<MultipartFile> media) throws MalformedURLException {
         log.debug("Request to save Comment : {} | {}x file", comment, media.map(e -> 1).orElse(0));
         if (comment.getContent().length() > 1000) {
