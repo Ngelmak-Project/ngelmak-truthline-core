@@ -51,13 +51,16 @@ public class NkComment implements Serializable {
     @Column(name = "content", length = 1000, nullable = false)
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.REMOVE)
     @JsonIncludeProperties(value = { "id" })
     private NkPost post;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonIncludeProperties(value = { "id" })
-    private NkComment replayto;
+    private NkComment replyTo;
+
+    @Column(name = "reply_count")
+    private Integer replyCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.REMOVE)
     @NotNull
@@ -78,29 +81,11 @@ public class NkComment implements Serializable {
     /**
      * a comment can have multiple subcomments (reply), each issued by one user.
      */
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "replayto")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "replyTo")
     @JsonIgnore
     private Set<NkComment> comments = new HashSet<>();
 
     public NkComment() {
-    }
-
-    public NkComment(Long id,
-            Instant at,
-            Instant lastUpdate,
-            Instant deletedAt,
-            String content,
-            NkPost post,
-            NkComment replayto,
-            NkAccount account) {
-        this.id = id;
-        this.at = at;
-        this.lastUpdate = lastUpdate;
-        this.deletedAt = deletedAt;
-        this.content = content;
-        this.post = post;
-        this.replayto = replayto;
-        this.account = account;
     }
 
     public Long getId() {
@@ -205,10 +190,10 @@ public class NkComment implements Serializable {
 
     public void setComments(Set<NkComment> comments) {
         if (this.comments != null) {
-            this.comments.forEach(i -> i.setReplayto(null));
+            this.comments.forEach(i -> i.setReplyto(null));
         }
         if (comments != null) {
-            comments.forEach(i -> i.setReplayto(this));
+            comments.forEach(i -> i.setReplyto(this));
         }
         this.comments = comments;
     }
@@ -220,13 +205,13 @@ public class NkComment implements Serializable {
 
     public NkComment addComment(NkComment comment) {
         this.comments.add(comment);
-        comment.setReplayto(this);
+        comment.setReplyto(this);
         return this;
     }
 
     public NkComment removeComment(NkComment comment) {
         this.comments.remove(comment);
-        comment.setReplayto(null);
+        comment.setReplyto(null);
         return this;
     }
 
@@ -243,16 +228,29 @@ public class NkComment implements Serializable {
         return this;
     }
 
-    public NkComment getReplayto() {
-        return this.replayto;
+    public NkComment getReplyto() {
+        return this.replyTo;
     }
 
-    public void setReplayto(NkComment comment) {
-        this.replayto = comment;
+    public void setReplyto(NkComment comment) {
+        this.replyTo = comment;
     }
 
-    public NkComment replayto(NkComment comment) {
-        this.setReplayto(comment);
+    public NkComment replyTo(NkComment comment) {
+        this.setReplyto(comment);
+        return this;
+    }
+
+    public void setReplyCount(Integer replyCount) {
+        this.replyCount = replyCount;
+    }
+
+    public Integer getReplyCount() {
+        return this.replyCount;
+    }
+
+    public NkComment replyCount(Integer replyCount) {
+        this.setReplyCount(replyCount);
         return this;
     }
 

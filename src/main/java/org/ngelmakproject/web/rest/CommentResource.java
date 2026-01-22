@@ -114,10 +114,9 @@ public class CommentResource {
      */
     @GetMapping("/post/{id}")
     public ResponseEntity<PageDTO<CommentDTO>> getCommentsByPost(@PathVariable Long id, Pageable pageable) {
-        log.info("REST request to get Comments of Post id : {} | Pageable {}", id, pageable);
+        log.debug("REST request to get Comments of Post id : {} | Pageable {}", id, pageable);
         Slice<CommentDTO> page = commentRepository.findByPostOrderByAt(id, pageable).map(c -> CommentDTO.from(c));
         var newPage = new PageDTO<>(page);
-        log.info("Comment page: {}", newPage);
         return ResponseEntity.ok().body(newPage);
     }
 
