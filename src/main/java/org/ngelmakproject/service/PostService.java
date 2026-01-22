@@ -24,7 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,18 +45,15 @@ public class PostService {
     private static final String ENTITY_NAME = "post";
 
     private final PostRepository postRepository;
-    private final CommentService commentService;
     private final FileService fileService;
     private final AccountService accountService;
     private final EntityManager entityManager;
 
     PostService(PostRepository postRepository,
-            CommentService commentService,
             FileService fileService,
             AccountService accountService,
             EntityManager entityManager) {
         this.postRepository = postRepository;
-        this.commentService = commentService;
         this.fileService = fileService;
         this.accountService = accountService;
         this.entityManager = entityManager;
@@ -159,11 +155,6 @@ public class PostService {
             return fullTextSearch(query, pageable);
         }
         Slice<NkPost> page = postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
-
-        List<NkComment> comments = commentService.findTopComments(page.getContent(), 10);
-        page.getContent().stream().forEach(p -> {
-            p.setComments(comments.stream().filter(c -> c.getPost().equals(p)).collect(Collectors.toSet()));
-        });
         return new PageDTO<>(page);
     }
 
