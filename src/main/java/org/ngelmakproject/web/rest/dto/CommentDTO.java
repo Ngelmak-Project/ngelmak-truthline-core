@@ -1,8 +1,6 @@
 package org.ngelmakproject.web.rest.dto;
 
 import java.time.Instant;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.ngelmakproject.domain.NkComment;
 
@@ -13,8 +11,7 @@ public record CommentDTO(
         Instant at,
         FileDTO file,
         AccountDTO account,
-        CommentDTO replayto,
-        Set<CommentDTO> comments) {
+        CommentDTO replayto) {
     public static CommentDTO from(NkComment comment) {
         if (comment == null)
             return null;
@@ -25,7 +22,6 @@ public record CommentDTO(
                 comment.getAt(),
                 FileDTO.from(comment.getFile()),
                 AccountDTO.from(comment.getAccount()),
-                CommentDTO.from(comment.getReplyTo()),
-                comment.getComments().stream().map(CommentDTO::from).collect(Collectors.toSet()));
+                CommentDTO.from(comment.getReplyTo()));
     }
 }
