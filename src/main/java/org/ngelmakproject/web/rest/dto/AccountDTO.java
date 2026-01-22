@@ -8,12 +8,14 @@ public record AccountDTO(
         String name,
         String avatar,
         Long userId) {
-    public static AccountDTO from(NkAccount account) {
+    public static AccountDTO from(NkAccount a) {
+        if (a == null)
+            return null;
         return new AccountDTO(
-                account.getId(),
-                account.getIdentifier(),
-                account.getName(),
-                account.getAvatar(),
-                account.getUser());
+                a.getId(),
+                a.getIdentifier(),
+                a.getName(),
+                a.getAvatar(),
+                a.getUser());
     }
 }

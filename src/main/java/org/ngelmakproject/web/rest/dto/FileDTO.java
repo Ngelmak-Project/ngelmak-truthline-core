@@ -10,6 +10,8 @@ public record FileDTO(
         String filename,
         Integer duration) {
     public static FileDTO from(NkFile f) {
+        if (f == null)
+            return null;
         return new FileDTO(
                 f.getId(),
                 f.getSize(),

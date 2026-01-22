@@ -12,16 +12,16 @@ public record CommentDTO(
         FileDTO file,
         AccountDTO account,
         CommentDTO replayto) {
-    public static CommentDTO from(NkComment comment) {
-        if (comment == null)
+    public static CommentDTO from(NkComment c) {
+        if (c == null)
             return null;
         return new CommentDTO(
-                comment.getId(),
-                comment.getContent(),
-                comment.getReplyCount(),
-                comment.getAt(),
-                FileDTO.from(comment.getFile()),
-                AccountDTO.from(comment.getAccount()),
-                CommentDTO.from(comment.getReplyTo()));
+                c.getId(),
+                c.getContent(),
+                c.getReplyCount(),
+                c.getAt(),
+                FileDTO.from(c.getFile()),
+                AccountDTO.from(c.getAccount()),
+                CommentDTO.from(c.getReplyTo()));
     }
 }

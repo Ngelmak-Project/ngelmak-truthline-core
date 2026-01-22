@@ -21,6 +21,8 @@ public record PostDTO(
         int commentCount,
         Long replyToId) {
     public static PostDTO from(NkPost p, ReactionSummaryDTO reactions) {
+        if (p == null)
+            return null;
         return new PostDTO(
                 p.getId(),
                 p.getContent(),
