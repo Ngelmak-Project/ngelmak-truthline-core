@@ -24,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -260,5 +261,23 @@ public class PostService {
                 .collect(Collectors.toList());
         Page<NkPost> page = new PageImpl<>(posts, pageable, posts.size());
         return new PageDTO<>(page);
+    }
+
+    /**
+     * Update Post total comments.
+     * 
+     * <p>
+     * This method is responsible of tracking and updating total comments of Posts.
+     * <\p>
+     * 
+     * [TODO] This method later should consider reading from Redis database and update automatically the comment count.
+     * It should be handle by a cron
+     * 
+     * @param postId
+     * @param count could be a positive or negative number.
+     */
+    // @Scheduled(cron = "0 0 2 * * *") // Run daily at 2 AM
+    public void updateCommmentCount(Long postId, Integer count) {
+        this.postRepository.updatePostCommentCount(postId, count);
     }
 }

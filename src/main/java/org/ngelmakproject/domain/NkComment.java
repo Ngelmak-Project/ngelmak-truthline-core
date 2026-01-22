@@ -51,16 +51,15 @@ public class NkComment implements Serializable {
     @Column(name = "content", length = 1000, nullable = false)
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonIncludeProperties(value = { "id" })
     private NkPost post;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonIncludeProperties(value = { "id" })
     private NkComment replayto;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.REMOVE)
     @NotNull
     @JsonIncludeProperties(value = { "id" })
     private NkAccount account;

@@ -25,21 +25,22 @@ import org.springframework.web.multipart.MultipartFile;
  * {@link org.ngelmakproject.domain.NkComment}.
  */
 @Service
-@Transactional
 public class CommentService {
 
     private static final String ENTITY_NAME = "comment";
     private static final Logger log = LoggerFactory.getLogger(CommentService.class);
 
     private final FileService fileService;
+    private final PostService postService;
     private final AccountService accountService;
     private final CommentRepository commentRepository;
 
     public CommentService(CommentRepository commentRepository, FileService fileService,
-            AccountService accountService) {
+            AccountService accountService, PostService postService) {
         this.commentRepository = commentRepository;
         this.fileService = fileService;
         this.accountService = accountService;
+        this.postService = postService;
     }
 
     /**
@@ -49,11 +50,13 @@ public class CommentService {
      * @return the persisted entity.
      * @throws MalformedURLException
      */
+    @Transactional
     public NkComment save(NkComment comment, Optional<MultipartFile> media) throws MalformedURLException {
         log.debug("Request to save Comment : {} | {}x file", comment, media.map(e -> 1).orElse(0));
         if (comment.getContent().length() > 1000) {
             throw new BadRequestAlertException("Contenu trop long > 1000 caractères.", ENTITY_NAME, "contentTooLong");
         }
+        // [TODO] This action should be done asynchronously with redis database
         return accountService.findOneByCurrentUser().map(account -> {
             /* 1. we start by saving the files if exists */
             List<MultipartFile> medias = media.map(m -> Arrays.asList(m)).orElse(List.of());
@@ -63,6 +66,8 @@ public class CommentService {
                     .at(Instant.now()) // set the current time
                     .file(files.stream().findFirst().orElse(null)) // attach the file is exists.
                     .account(account); // set the current connected user as owner of the comment.
+            // [TODO] Use Redis to record the changes.
+            this.postService.updateCommmentCount(comment.getPost().getId(), 1);
             return commentRepository.save(comment);
         }).orElseThrow(AccountNotFoundException::new);
     }
@@ -134,8 +139,12 @@ public class CommentService {
                         }
                         return deletingComment;
                     })
-                    .ifPresent(commentRepository::delete);
-                    return null;
+                    .ifPresent(deletingComment -> {
+                        // [TODO] Use Redis to record the changes.
+                        commentRepository.delete(deletingComment);
+                        this.postService.updateCommmentCount(deletingComment.getPost().getId(), -1);
+                    });
+            return null;
         }).orElseThrow(AccountNotFoundException::new);
     }
 }

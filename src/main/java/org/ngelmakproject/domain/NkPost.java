@@ -27,7 +27,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraIntegers.NotNull;
 
 /**
  * The NkPost entity.
@@ -95,7 +95,7 @@ public class NkPost implements Serializable {
     private Set<NkComment> comments = new HashSet<>();
 
     @Column(name = "comment_count")
-    private int commentCount = 0;
+    private Integer commentCount = 0;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<NkReaction> reactions = new HashSet<>();
@@ -266,16 +266,16 @@ public class NkPost implements Serializable {
         return this;
     }
 
-    public int getCommentCount() {
+    public Integer getCommentCount() {
         return this.commentCount;
     }
 
-    public NkPost commentCount(int commentCount) {
+    public NkPost commentCount(Integer commentCount) {
         this.setCommentCount(commentCount);
         return this;
     }
 
-    public void setCommentCount(int commentCount) {
+    public void setCommentCount(Integer commentCount) {
         this.commentCount = commentCount;
     }
 
@@ -317,7 +317,7 @@ public class NkPost implements Serializable {
     }
 
     @Override
-    public int hashCode() {
+    public Integer hashCode() {
         // see
         // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();

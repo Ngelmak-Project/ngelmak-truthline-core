@@ -1,22 +1,18 @@
 package org.ngelmakproject.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkAccount;
-import org.ngelmakproject.domain.NkFeed;
 import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Status;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import jakarta.persistence.Tuple;
 
 /**
  * Spring Data JPA repository for the NkPost entity.
@@ -64,6 +60,7 @@ public interface PostRepository extends JpaRepository<NkPost, Long> {
 
   /**
    * Use an @EntityGraph to fetch account + files in one go:
+   * 
    * @param status
    * @param pageable
    * @return
@@ -78,4 +75,29 @@ public interface PostRepository extends JpaRepository<NkPost, Long> {
           WHERE p.status = 'PUBLISHED'
       """)
   Slice<NkPost> findAllWithRelations(Pageable pageable);
+
+  @Modifying
+  @Query("""
+      UPDATE NkPost p
+      SET p.commentCount = (SELECT COUNT(c.id) FROM NkComment c
+      WHERE c.post.id = p.id)
+      """)
+  void updateAllPostCommentCounts();
+
+  @Modifying
+  @Query("""
+        UPDATE NkPost p
+        SET p.commentCount=(SELECT COUNT(c.id) FROM NkComment c
+        WHERE c.post.id = :postId)
+      """)
+  void updatePostCommentCount(@Param("postId") Long postId);
+
+  @Modifying
+  @Query("""
+      UPDATE NkPost p
+      SET p.commentCount = GREATEST(0, p.commentCount + :countChange)
+      WHERE p.id = :postId
+      """)
+  void updatePostCommentCount(@Param("postId") Long postId, @Param("countChange") Integer countChange);
+
 }
