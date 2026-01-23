@@ -139,12 +139,6 @@ public class CommentService {
     public void updateReplyCount(Long commentId, Integer count) {
         this.commentRepository.updateReplyCount(commentId, count);
     }
-    
-    @Transactional(readOnly = true)
-    public List<NkComment> findTopComments(List<NkPost> posts, int limit) {
-        log.debug("Request to get all Comments");
-        return commentRepository.findTopCommentsForPosts(posts.stream().map(NkPost::getId).toList(), limit);
-    }
 
     /**
      * Delete the comment by id.
