@@ -109,7 +109,7 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
 	@Modifying
 	@Query("""
 			UPDATE NkComment c
-			SET c.replyCount = GREATEST(0, c.commentCount + :countChange)
+			SET c.replyCount = GREATEST(0, c.replyCount + :countChange)
 			WHERE c.id = :commentId
 			""")
 	void updateReplyCount(@Param("commentId") Long commentId, @Param("countChange") Integer countChange);
