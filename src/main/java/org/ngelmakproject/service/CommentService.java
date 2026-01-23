@@ -67,8 +67,14 @@ public class CommentService {
                     .file(files.stream().findFirst().orElse(null)) // attach the file is exists.
                     .account(account); // set the current connected user as owner of the comment.
             // [TODO] Use Redis to record the changes.
-            if (comment.getPost() != null && comment.getReplyTo() == null) {
+            if (comment.getPost() != null) {
                 this.postService.updateCommmentCount(comment.getPost().getId(), 1);
+            } else if (comment.getReplyTo() != null) {
+                this.updateReplyCount(comment.getReplyTo().getId(), 1);
+            } else {
+                throw new BadRequestAlertException(
+                        "A comment must always refer to at least one Post or Comment, but none have been provided.",
+                        ENTITY_NAME, "missingPostOrComment");
             }
 
             return commentRepository.save(comment);
@@ -114,6 +120,26 @@ public class CommentService {
         }).orElseThrow(AccountNotFoundException::new);
     }
 
+    
+
+    /**
+     * Update reply comments.
+     * 
+     * <p>
+     * This method is responsible of tracking and updating total replies on a comment.
+     * <\p>
+     * 
+     * [TODO] This method later should consider reading from Redis database and update automatically the comment count.
+     * It should be handle by a cron
+     * 
+     * @param commentId
+     * @param count could be a positive or negative number.
+     */
+    // @Scheduled(cron = "0 0 2 * * *") // Run daily at 2 AM
+    public void updateReplyCount(Long commentId, Integer count) {
+        this.commentRepository.updateReplyCount(commentId, count);
+    }
+    
     @Transactional(readOnly = true)
     public List<NkComment> findTopComments(List<NkPost> posts, int limit) {
         log.debug("Request to get all Comments");
