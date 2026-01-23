@@ -101,8 +101,8 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
 	@Modifying
 	@Query("""
 			  UPDATE NkComment c
-			  SET c.replyCount=(SELECT COUNT(c.id) FROM NkComment c
-			  WHERE c.replyTo.id = :commentId)
+			  SET c.replyCount=(SELECT COUNT(c.id) FROM NkComment c2
+			  WHERE c2.replyTo.id = :commentId)
 			""")
 	void updateReplyCount(@Param("commentId") Long commentId);
 
