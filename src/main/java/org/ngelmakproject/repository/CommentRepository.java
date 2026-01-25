@@ -1,10 +1,13 @@
 package org.ngelmakproject.repository;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.ngelmakproject.domain.NkComment;
 import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Status;
+import org.ngelmakproject.repository.projection.CommentProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -113,4 +116,46 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
 			WHERE c.id = :commentId
 			""")
 	void updateReplyCount(@Param("commentId") Long commentId, @Param("countChange") Integer countChange);
+
+	@Modifying
+	@Query("UPDATE NkComment c SET c.deleteAt = :ts WHERE c.id = :id")
+	int softDeleteById(@Param("id") Long id, @Param("ts") Instant ts);
+
+	@Modifying
+	@Query("UPDATE NkComment c SET c.deleteAt = CURRENT_TIMESTAMP WHERE c.id = :id")
+	int softDeleteById(@Param("id") Long id);
+
+	@Modifying
+	@Query("""
+			    UPDATE NkComment c
+			    SET c.deleteAt = :ts
+			    WHERE c.id = :id AND c.account.id = :accountId
+			""")
+	int softDeleteByIdAndAccount(
+			@Param("id") Long id,
+			@Param("accountId") Long accountId,
+			@Param("ts") Instant ts);
+
+	@Modifying
+	@Query("""
+			    UPDATE NkComment c
+			    SET c.deleteAt = CURRENT_TIMESTAMP
+			    WHERE c.id = :id AND c.account.id = :accountId
+			""")
+	int softDeleteByIdAndAccount(
+			@Param("id") Long id,
+			@Param("accountId") Long accountId);
+
+	@Modifying
+	@Query("DELETE FROM NkComment c WHERE c.deleteAt < :cutoff")
+	int deleteExpiredComments(Instant cutoff);
+
+	@Query("SELECT c FROM NkComment c WHERE c.deleteAt < :cutoff")
+	List<CommentProjection> findExpiredComments(Instant cutoff);
+
+	@EntityGraph(attributePaths = { "post", "replyTo" })
+	Optional<NkComment> findWithPostAndReplyToById(Long id);
+
+	Optional<CommentProjection> findProjectedById(Long id);
+
 }

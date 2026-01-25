@@ -146,6 +146,11 @@ public class FileService {
         fileRepository.deleteAll(files);
     }
 
+    public void deletePermenentlyByIds(List<Long> fileIds) {
+        List<NkFile> files = fileRepository.findAllById(fileIds);
+        deletePermenently(files);
+    }
+
     public void delete(Long id) {
         fileRepository.deleteById(id);
     }

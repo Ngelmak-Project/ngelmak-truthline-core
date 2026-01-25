@@ -2,19 +2,23 @@ package org.ngelmakproject.service;
 
 import java.net.MalformedURLException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkComment;
 import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.repository.CommentRepository;
+import org.ngelmakproject.repository.projection.CommentProjection;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.ngelmakproject.web.rest.errors.ResourceNotFoundException;
 import org.ngelmakproject.web.rest.errors.UnauthorizedResourceAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -140,39 +144,103 @@ public class CommentService {
     }
 
     /**
-     * Delete the comment by id.
+     * Soft‑deletes a comment owned by the current authenticated user.
      *
-     * @param id the id of the entity.
+     * <p>
+     * This method performs an authorization check using a lightweight projection
+     * to avoid loading the full entity. If the comment belongs to the current user,
+     * it is soft‑deleted using a JPQL update (no entity loading, no dirty
+     * checking).
+     * After deletion, the method updates either the parent post's comment count or
+     * the parent comment's reply count, depending on the comment type.
+     * </p>
+     *
+     * <p>
+     * File deletion and permanent cleanup are intentionally deferred to a
+     * scheduled cron job to avoid unnecessary I/O during user‑initiated deletes.
+     * </p>
+     *
+     * @param id the identifier of the comment to delete
+     * @throws AccountNotFoundException            if no authenticated account is
+     *                                             found
+     * @throws UnauthorizedResourceAccessException if the comment does not belong to
+     *                                             the current user
      */
     public void delete(Long id) {
         log.debug("Request to delete Comment : {}", id);
-        accountService.findOneByCurrentUser().map(account -> {
-            commentRepository
-                    .findById(id)
-                    .map(deletingComment -> {
-                        if (account.getId() != deletingComment.getAccount().getId()) {
-                            throw new UnauthorizedResourceAccessException(account.getUser(), id,
-                                    ENTITY_NAME);
-                        }
-                        deletingComment.setDeleteAt(Instant.now());
-                        // 2. attach the file is exists.
-                        if (deletingComment.getFile() != null) {
-                            this.fileService.delete(Arrays.asList(deletingComment.getFile()));
-                        }
-                        return deletingComment;
-                    })
-                    .ifPresent(deletingComment -> {
-                        // [TODO] Use Redis to record the changes.
-                        commentRepository.delete(deletingComment);
-                        if (deletingComment.getPost() != null) {
-                            this.postService.updateCommmentCount(deletingComment.getPost().getId(), -1);
-                        } else if (deletingComment.getReplyTo() != null) {
-                            this.updateReplyCount(deletingComment.getReplyTo().getId(), -1);
-                        } else {
-                            // Nothing to do.
-                        }
-                    });
-            return null;
-        }).orElseThrow(AccountNotFoundException::new);
+
+        var account = accountService.findOneByCurrentUser()
+                .orElseThrow(AccountNotFoundException::new);
+
+        commentRepository.findProjectedById(id).ifPresent(projection -> {
+
+            // Authorization check: ensure the comment belongs to the current user
+            if (!account.getId().equals(projection.getAccountId())) {
+                throw new UnauthorizedResourceAccessException(
+                        account.getUser(), id, ENTITY_NAME);
+            }
+
+            // Soft delete using JPQL update (no entity loading)
+            commentRepository.softDeleteById(id);
+
+            // TODO: Record deletion event in Redis for async processing
+            // Update counters depending on comment type
+            if (projection.getPostId() != null) {
+                postService.updateCommmentCount(projection.getPostId(), -1);
+            } else if (projection.getReplyToId() != null) {
+                updateReplyCount(projection.getReplyToId(), -1);
+            }
+            // else: root comment with no parent — nothing to update
+        });
     }
+
+    /**
+     * Permanently deletes comments that were soft‑deleted more than 30 days ago.
+     *
+     * <p>
+     * This scheduled task performs a two‑phase cleanup:
+     * <ul>
+     * <li>Fetch expired comments using a lightweight projection (ID + fileId)</li>
+     * <li>Delete associated files in batch</li>
+     * <li>Hard‑delete the comments using a bulk delete</li>
+     * </ul>
+     *
+     * <p>
+     * No entities are loaded during this process. All operations rely on
+     * projections and batch operations for maximum efficiency.
+     * </p>
+     */
+    @Scheduled(cron = "0 0 3 * * *") // every day at 3 AM
+    @Transactional
+    public void purgeDeletedComments() {
+        Instant cutoff = Instant.now().minus(30, ChronoUnit.DAYS);
+
+        List<CommentProjection> comments = commentRepository.findExpiredComments(cutoff);
+
+        if (comments.isEmpty()) {
+            return;
+        }
+
+        // Extract file IDs
+        List<Long> fileIds = comments.stream()
+                .map(CommentProjection::getFileId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (!fileIds.isEmpty()) {
+            fileService.deletePermenentlyByIds(fileIds);
+        }
+
+        // Extract comment IDs
+        List<Long> commentIds = comments.stream()
+                .map(CommentProjection::getId)
+                .toList();
+
+        // Hard delete comments
+        commentRepository.deleteAllByIdInBatch(commentIds);
+
+        log.info("Purged {} comments and {} files older than {}",
+                commentIds.size(), fileIds.size(), cutoff);
+    }
+
 }
