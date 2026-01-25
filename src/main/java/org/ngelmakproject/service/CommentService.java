@@ -8,7 +8,6 @@ import java.util.Optional;
 
 import org.ngelmakproject.domain.NkComment;
 import org.ngelmakproject.domain.NkFile;
-import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.repository.CommentRepository;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
@@ -120,20 +119,20 @@ public class CommentService {
         }).orElseThrow(AccountNotFoundException::new);
     }
 
-    
-
     /**
      * Update reply comments.
      * 
      * <p>
-     * This method is responsible of tracking and updating total replies on a comment.
+     * This method is responsible of tracking and updating total replies on a
+     * comment.
      * <\p>
      * 
-     * [TODO] This method later should consider reading from Redis database and update automatically the comment count.
+     * [TODO] This method later should consider reading from Redis database and
+     * update automatically the comment count.
      * It should be handle by a cron
      * 
      * @param commentId
-     * @param count could be a positive or negative number.
+     * @param count     could be a positive or negative number.
      */
     // @Scheduled(cron = "0 0 2 * * *") // Run daily at 2 AM
     public void updateReplyCount(Long commentId, Integer count) {
@@ -165,7 +164,13 @@ public class CommentService {
                     .ifPresent(deletingComment -> {
                         // [TODO] Use Redis to record the changes.
                         commentRepository.delete(deletingComment);
-                        this.postService.updateCommmentCount(deletingComment.getPost().getId(), -1);
+                        if (deletingComment.getPost() != null) {
+                            this.postService.updateCommmentCount(deletingComment.getPost().getId(), -1);
+                        } else if (deletingComment.getReplyTo() != null) {
+                            this.updateReplyCount(deletingComment.getReplyTo().getId(), -1);
+                        } else {
+                            // Nothing to do.
+                        }
                     });
             return null;
         }).orElseThrow(AccountNotFoundException::new);
