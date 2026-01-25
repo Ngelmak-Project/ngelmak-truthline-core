@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,6 +66,7 @@ public class PostResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<NkPost> createPost(@RequestPart NkPost post,
             @RequestPart(required = false) Optional<List<MultipartFile>> _medias,
             @RequestPart(required = false) Optional<List<MultipartFile>> _covers)
@@ -96,6 +98,7 @@ public class PostResource {
      * @throws IOException
      */
     @PutMapping("")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<NkPost> updatePost(
             @RequestPart NkPost post,
             @RequestPart(required = false) Optional<List<NkFile>> _deletedFiles,
@@ -186,6 +189,7 @@ public class PostResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deletePost(@PathVariable("id") Long id) {
         log.debug("REST request to delete Post : {}", id);
         postService.delete(id);
