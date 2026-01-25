@@ -122,29 +122,12 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
 	int softDeleteById(@Param("id") Long id, @Param("ts") Instant ts);
 
 	@Modifying
-	@Query("UPDATE NkComment c SET c.deletedAt = CURRENT_TIMESTAMP WHERE c.id = :id")
-	int softDeleteById(@Param("id") Long id);
-
-	@Modifying
 	@Query("""
 			    UPDATE NkComment c
 			    SET c.deletedAt = :ts
 			    WHERE c.id = :id AND c.account.id = :accountId
 			""")
-	int softDeleteByIdAndAccount(
-			@Param("id") Long id,
-			@Param("accountId") Long accountId,
-			@Param("ts") Instant ts);
-
-	@Modifying
-	@Query("""
-			    UPDATE NkComment c
-			    SET c.deletedAt = CURRENT_TIMESTAMP
-			    WHERE c.id = :id AND c.account.id = :accountId
-			""")
-	int softDeleteByIdAndAccount(
-			@Param("id") Long id,
-			@Param("accountId") Long accountId);
+	int softDeleteByIdAndAccount(@Param("id") Long id, @Param("accountId") Long accountId, @Param("ts") Instant ts);
 
 	@Modifying
 	@Query("DELETE FROM NkComment c WHERE c.deletedAt < :cutoff")

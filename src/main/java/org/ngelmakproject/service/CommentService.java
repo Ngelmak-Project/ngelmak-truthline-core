@@ -181,7 +181,7 @@ public class CommentService {
             }
 
             // Soft delete using JPQL update (no entity loading)
-            commentRepository.softDeleteById(id);
+            commentRepository.softDeleteById(id, Instant.now());
 
             // TODO: Record deletion event in Redis for async processing
             // Update counters depending on comment type
