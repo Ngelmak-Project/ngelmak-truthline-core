@@ -2,9 +2,11 @@ package org.ngelmakproject.service;
 
 import java.net.URL;
 import java.security.MessageDigest;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,9 +14,11 @@ import java.util.stream.Collectors;
 
 import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.repository.FileRepository;
+import org.ngelmakproject.repository.projection.FileProjection;
 import org.ngelmakproject.service.storage.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,121 +42,144 @@ public class FileService {
         this.fileStorageService = fileStorageService;
     }
 
+    /**
+     * Saves uploaded media files with deduplication.
+     *
+     * <p>
+     * Computes a hash for each upload.
+     * Reuses existing NkFile entries when hashes match.
+     * Stores only new files on disk and persists them.
+     * Increments usageCount for every returned file.
+     * <\p>
+     *
+     * @param medias uploaded multipart files
+     * @return list of NkFile entities (existing + newly saved)
+     */
     public List<NkFile> save(List<MultipartFile> medias) {
         log.debug("Request to save {}x file(s)", medias.size());
-        if (medias.isEmpty()) {
-            return List.of();
-        }
-        List<NkFile> allFiles = new ArrayList<>();
-        Map<String, MultipartFile> hashToMedia = new HashMap<>();
-        MultipartFile _media = null;
-        // Convert all multipart files to NkFile objects with hash
-        for (int i = 0; i < medias.size(); i++) {
-            _media = medias.get(i);
-            NkFile media = fromMultipartToFile(_media);
-            allFiles.add(media);
-            hashToMedia.put(media.getHash(), _media);
-        }
-
-        // Query DB once for existing hashes
-        Map<String, NkFile> existing = fileRepository.findByHashIn(hashToMedia.keySet())
-                .stream()
-                .collect(Collectors.toMap(NkFile::getHash, f -> f));
-
-        // Filter out existing files → keep only new ones
-        List<NkFile> newFiles = allFiles.stream()
-                .filter(f -> !existing.containsKey(f.getHash()))
-                // Save the medias locally.
-                .map(file -> {
-                    URL url = fileStorageService.store(hashToMedia.get(file.getHash()), true, file.getFilename());
-                    file.setUrl(url.toString()); // update the url to the file.
-                    return file;
-                })
-                .map(fileRepository::save) // Persist new files in one DB call
-                .toList();
-
-        // Build final result list (existing + new)
-        List<NkFile> files = new ArrayList<>(newFiles); // add new saved files.
-        existing.forEach((hash, file) -> files.add(file)); // add existing files to the list.
-
-        return files;
+        return save(medias, Collections.nCopies(medias.size(), null));
     }
 
+    /**
+     * Saves media files and their optional covers with deduplication.
+     *
+     * <p>
+     * Computes a hash for each media and cover.
+     * Reuses existing NkFile entries when hashes match.
+     * Stores only new files on disk and persists them.
+     * Links each media to its cover when provided.
+     * Batch‑increments usageCount for all returned files.
+     * <\p>
+     *
+     * @param medias list of media files
+     * @param covers list of cover files (same size as medias, may contain
+     *               null/empty entries)
+     * @return list of File entities (existing + newly saved)
+     */
     public List<NkFile> save(List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to save {}x file(s) and {}x cover(s)", medias.size(), covers.size());
         if (medias.isEmpty()) {
             return List.of();
         }
-        List<NkFile> allFiles = new ArrayList<>();
-        MultipartFile _media, _cover = null;
-        Map<String, MultipartFile> hashToMedia = new HashMap<>();
-        // Convert all multipart files to NkFile objects with hash
+
+        List<NkFile> prepared = new ArrayList<>();
+        Map<String, MultipartFile> hashToMultipart = new HashMap<>();
+
         for (int i = 0; i < medias.size(); i++) {
             // MEDIA
-            _media = medias.get(i);
-            NkFile media = fromMultipartToFile(_media);
-            hashToMedia.put(media.getHash(), _media);
-            allFiles.add(media);
+            MultipartFile mediaPart = medias.get(i);
+            NkFile media = fromMultipartToFile(mediaPart);
+            prepared.add(media);
+            hashToMultipart.put(media.getHash(), mediaPart);
+
             // COVER (optional)
-            _cover = covers.get(i);
-            if (_cover != null && !_cover.isEmpty()) {
-                NkFile cover = fromMultipartToFile(_cover);
-                hashToMedia.put(cover.getHash(), _cover);
-                media.setCover(cover); // set it as cover.
-                allFiles.add(cover);
+            MultipartFile coverPart = covers.get(i);
+            if (coverPart != null && !coverPart.isEmpty()) {
+                NkFile cover = fromMultipartToFile(coverPart);
+                media.setCover(cover);
+                prepared.add(cover);
+                hashToMultipart.put(cover.getHash(), coverPart);
             }
         }
 
-        // Query DB once for existing hashes
-        Map<String, NkFile> existing = fileRepository.findByHashIn(hashToMedia.keySet())
+        // Load existing files by hash
+        Map<String, NkFile> existing = fileRepository.findByHashIn(hashToMultipart.keySet())
                 .stream()
                 .collect(Collectors.toMap(NkFile::getHash, f -> f));
 
-        // Filter out existing files → keep only new ones
-        List<NkFile> newFiles = allFiles.stream()
+        // Persist only new files
+        List<NkFile> newFiles = prepared.stream()
                 .filter(f -> !existing.containsKey(f.getHash()))
-                // Save the medias locally.
-                .map(file -> {
-                    URL url = fileStorageService.store(hashToMedia.get(file.getHash()), true, file.getFilename());
-                    file.setUrl(url.toString()); // update the url to the file.
-                    return file;
+                .map(f -> {
+                    URL url = fileStorageService.store(hashToMultipart.get(f.getHash()), true, f.getFilename());
+                    f.setUrl(url.toString());
+                    f.setCreatedAt(Instant.now());
+                    return f;
                 })
-                .map(fileRepository::save) // Persist new files in one DB call
+                .map(fileRepository::save)
                 .toList();
 
-        // Build final result list (existing + new)
-        List<NkFile> files = new ArrayList<>(newFiles); // add new saved files.
-        existing.forEach((hash, file) -> files.add(file)); // add existing files to the list.
+        // Combine new + existing
+        List<NkFile> result = new ArrayList<>(newFiles);
+        result.addAll(existing.values());
 
-        return files;
+        // Batch increment usageCount
+        List<Long> ids = result.stream().map(NkFile::getId).toList();
+        fileRepository.incrementUsageCount(ids);
+
+        return result;
     }
 
     /**
-     * [TODO] Mark a file as to be deleted first then a cron would terminate the job
-     * later.
+     * Marks the given files for deletion by decrementing their usage count.
+     * Actual removal is handled later by the cleanup cron.
      * 
-     * @param files
+     * @param files to delete
      */
     public void delete(List<NkFile> files) {
-        this.deletePermenently(files);
+        log.debug("Request to delete Files : {}", files);
+        deleteByIds(files.stream().map(NkFile::getId).toList());
     }
 
-    public void deletePermenently(List<NkFile> files) {
-        for (NkFile file : files) {
-            if (!file.getUrl().isEmpty()) {
-                fileStorageService.delete(file.getUrl());
-            }
+    /**
+     * Decrements usageCount for all given file IDs.
+     * Files reaching usageCount = 0 become eligible for cleanup.
+     * 
+     * [TODO] Use redis to make the deletion asynchrone.
+     * 
+     * @param fileIds id of Files to delete.
+     */
+    public void deleteByIds(List<Long> fileIds) {
+        fileRepository.decrementUsageCount(fileIds);
+    }
+
+    /**
+     * Periodic cleanup of files no longer referenced.
+     *
+     * <p>
+     * Selects files with usageCount = 0.
+     * Deletes the physical file from storage.
+     * Removes the corresponding NkFile rows.
+     * <\p>
+     */
+    @Scheduled(cron = "0 0 3 * * *") // every day at 3 AM
+    @Transactional
+    public void cleanupUnusedFiles() {
+        log.warn("Launching the cleanup schedule for unused files");
+
+        // Get all unused files
+        List<FileProjection> unusedFiles = fileRepository.findUnusedFiles();
+        if (unusedFiles.isEmpty()) {
+            return;
         }
-        fileRepository.deleteAll(files);
-    }
 
-    public void deletePermenentlyByIds(List<Long> fileIds) {
-        List<NkFile> files = fileRepository.findAllById(fileIds);
-        deletePermenently(files);
-    }
+        // Delete physical files
+        unusedFiles.forEach(f -> fileStorageService.delete(f.getUrl()));
 
-    public void delete(Long id) {
-        fileRepository.deleteById(id);
+        // Delete database entries
+        fileRepository.deleteUnusedFiles(
+                unusedFiles.stream().map(FileProjection::getId).toList());
+        log.debug("A total of {}x Files are deleted", unusedFiles.size());
     }
 
     private NkFile fromMultipartToFile(MultipartFile media) {
@@ -165,7 +192,7 @@ public class FileService {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE); // yyyyMMdd
         String shortHash = hash.substring(0, 8);
         String filename = "Nk-" + date + "-" + shortHash + "." + ext;
-        
+
         file.setHash(hash);
         file.setFilename(filename);
         file.setType(media.getContentType());

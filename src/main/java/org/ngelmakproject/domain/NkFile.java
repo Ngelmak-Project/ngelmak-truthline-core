@@ -3,6 +3,7 @@ package org.ngelmakproject.domain;
 import java.io.Serializable;
 import java.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 
 import jakarta.persistence.CascadeType;
@@ -31,6 +32,7 @@ public class NkFile implements Serializable {
     @Column(name = "id")
     private Long id;
 
+    @JsonIgnore
     @Column(name = "hash")
     private String hash;
 
@@ -50,8 +52,13 @@ public class NkFile implements Serializable {
     @Column(name = "type", nullable = false)
     private String type;
 
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
+    @JsonIgnore
+    @Column(name = "usage_count", nullable = false)
+    private Integer usageCount = 0;
+
+    @JsonIgnore
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
 
     @ManyToOne(optional = true, cascade = CascadeType.PERSIST)
     @JsonIncludeProperties(value = { "id" })
@@ -117,12 +124,20 @@ public class NkFile implements Serializable {
         this.type = type;
     }
 
-    public Instant getDeletedAt() {
-        return deletedAt;
+    public Integer getUsageCount() {
+        return this.usageCount;
     }
 
-    public void setDeletedAt(Instant deletedAt) {
-        this.deletedAt = deletedAt;
+    public void setUsageCount(Integer usageCount) {
+        this.usageCount = usageCount;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public NkFile getCover() {
@@ -143,7 +158,7 @@ public class NkFile implements Serializable {
         sb.append(", duration=").append(duration);
         sb.append(", url=").append(url);
         sb.append(", type=").append(type);
-        sb.append(", deletedAt=").append(deletedAt);
+        sb.append(", createdAt=").append(createdAt);
         sb.append(", cover=").append(cover);
         sb.append('}');
         return sb.toString();
