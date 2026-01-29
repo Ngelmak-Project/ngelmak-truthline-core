@@ -189,7 +189,7 @@ public class PostResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
      *         the post, or with status {@code 404 (Not Found)}.
      */
-    @GetMapping()
+    @GetMapping("/{id}")
     public ResponseEntity<NkPost> getPost(@PathVariable Long id) {
         log.debug("REST request to get Post : {}", id);
         Optional<NkPost> post = postService.findOne(id);
