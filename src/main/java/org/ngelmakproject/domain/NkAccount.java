@@ -77,8 +77,12 @@ public class NkAccount implements Serializable {
     @Column(name = "visibility")
     private Accessibility visibility;
 
-    @Column(name = "created_at")
-    private Instant created_at;
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @JsonIgnore
+    @Column(name = "deleted_at", nullable = false)
+    private Instant deletetedAt;
 
     /**
      * a default configuration can be set for visibility of posts and their eventual
@@ -234,16 +238,29 @@ public class NkAccount implements Serializable {
     }
 
     public Instant getCreatedAt() {
-        return this.created_at;
+        return this.createdAt;
     }
 
-    public NkAccount createdAt(Instant created_at) {
-        this.setCreatedAt(created_at);
+    public NkAccount createdAt(Instant createdAt) {
+        this.setCreatedAt(createdAt);
         return this;
     }
 
-    public void setCreatedAt(Instant created_at) {
-        this.created_at = created_at;
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getDeletedAt() {
+        return this.deletetedAt;
+    }
+
+    public NkAccount deletetedAt(Instant deletetedAt) {
+        this.setDeletedAt(deletetedAt);
+        return this;
+    }
+
+    public void setDeletedAt(Instant deletetedAt) {
+        this.deletetedAt = deletetedAt;
     }
 
     public NkConfig getConfiguration() {

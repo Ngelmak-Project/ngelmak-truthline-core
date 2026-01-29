@@ -3,11 +3,9 @@ package org.ngelmakproject.web.rest;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkAccount;
-import org.ngelmakproject.repository.AccountRepository;
 import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.AccountService;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
@@ -27,7 +25,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,7 +37,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 
 /**
  * REST controller for managing
@@ -66,11 +62,8 @@ public class AccountResource {
 
     private final AccountService accountService;
 
-    private final AccountRepository accountRepository;
-
-    public AccountResource(AccountService accountService, AccountRepository accountRepository) {
+    public AccountResource(AccountService accountService) {
         this.accountService = accountService;
-        this.accountRepository = accountRepository;
     }
 
     /**
@@ -128,44 +121,6 @@ public class AccountResource {
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME,
                         newAccount.getId().toString()))
                 .body(newAccount);
-    }
-
-    /**
-     * {@code PATCH  /accounts/:id} : Partial updates given fields of an existing
-     * account, field will ignore if it is null
-     *
-     * @param id      the id of the account to save.
-     * @param account the account to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
-     *         the updated account,
-     *         or with status {@code 400 (Bad Request)} if the account is not
-     *         valid,
-     *         or with status {@code 404 (Not Found)} if the account is not found,
-     *         or with status {@code 500 (Internal Server Error)} if the account
-     *         couldn't be updated.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
-     */
-    @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<NkAccount> partialUpdateAccount(
-            @PathVariable(value = "id", required = false) final Long id,
-            @NotNull @RequestBody NkAccount account) throws URISyntaxException {
-        log.debug("REST request to partial update NkAccount partially : {}, {}", id, account);
-        if (account.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
-        }
-        if (!Objects.equals(id, account.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
-        }
-
-        if (!accountRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
-
-        Optional<NkAccount> result = accountService.partialUpdate(account);
-
-        return ResponseUtil.wrapOrNotFound(
-                result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME, account.getId().toString()));
     }
 
     /**

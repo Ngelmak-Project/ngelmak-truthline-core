@@ -1,6 +1,5 @@
 package org.ngelmakproject.service;
 
-import java.net.MalformedURLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -52,9 +51,8 @@ public class CommentService {
      *
      * @param comment the entity to save.
      * @return the persisted entity.
-     * @throws MalformedURLException
      */
-    public NkComment save(NkComment comment, Optional<MultipartFile> media) throws MalformedURLException {
+    public NkComment save(NkComment comment, Optional<MultipartFile> media) {
         log.debug("Request to save Comment : {} | {}x file", comment, media.map(e -> 1).orElse(0));
         if (comment.getContent().length() > 1000) {
             throw new BadRequestAlertException("Contenu trop long > 1000 caractères.", ENTITY_NAME, "contentTooLong");
@@ -228,7 +226,7 @@ public class CommentService {
                 .toList();
 
         if (!fileIds.isEmpty()) {
-            fileService.deletePermenentlyByIds(fileIds);
+            fileService.deleteByIds(fileIds);
         }
 
         // Extract comment IDs

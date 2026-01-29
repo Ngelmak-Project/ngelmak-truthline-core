@@ -1,7 +1,7 @@
 package org.ngelmakproject.service;
 
-import java.net.URL;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkAccount;
@@ -12,11 +12,9 @@ import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.AccountRepository;
 import org.ngelmakproject.repository.MembershipRepository;
 import org.ngelmakproject.security.UserPrincipal;
-import org.ngelmakproject.service.storage.FileStorageService;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -39,16 +37,18 @@ public class AccountService {
     private static final Logger log = LoggerFactory.getLogger(AccountService.class);
 
     private final AccountRepository accountRepository;
+    private final MembershipRepository membershipRepository;
+    private final ConfigService configService;
+    private final FileService fileService;
 
-    @Autowired
-    private MembershipRepository membershipRepository;
-    @Autowired
-    private ConfigService configService;
-    @Autowired
-    private FileStorageService fileStorageService;
-
-    public AccountService(AccountRepository accountRepository) {
+    public AccountService(AccountRepository accountRepository,
+            MembershipRepository membershipRepository,
+            ConfigService configService,
+            FileService fileService) {
         this.accountRepository = accountRepository;
+        this.membershipRepository = membershipRepository;
+        this.configService = configService;
+        this.fileService = fileService;
     }
 
     /**
@@ -118,44 +118,6 @@ public class AccountService {
     }
 
     /**
-     * Partially update a account.
-     *
-     * @param account the entity to update partially.
-     * @return the persisted entity.
-     */
-    public Optional<NkAccount> partialUpdate(NkAccount account) {
-        log.debug("Request to partially update Account : {}", account);
-
-        return this.findOneByCurrentUser()
-                .map(existingNkAccount -> {
-                    if (account.getIdentifier() != null) {
-                        existingNkAccount.setIdentifier(account.getIdentifier());
-                    }
-                    if (account.getName() != null) {
-                        existingNkAccount.setName(account.getName());
-                    }
-                    if (account.getAvatar() != null) {
-                        existingNkAccount.setAvatar(account.getAvatar());
-                    }
-                    if (account.getBanner() != null) {
-                        existingNkAccount.setBanner(account.getBanner());
-                    }
-                    if (account.getVisibility() != null) {
-                        existingNkAccount.setVisibility(account.getVisibility());
-                    }
-                    if (account.getCreatedAt() != null) {
-                        existingNkAccount.setCreatedAt(account.getCreatedAt());
-                    }
-                    if (account.getDescription() != null) {
-                        existingNkAccount.setDescription(account.getDescription());
-                    }
-
-                    return existingNkAccount;
-                })
-                .map(accountRepository::save);
-    }
-
-    /**
      * Get all the accounts.
      *
      * @param pageable the pagination information.
@@ -163,7 +125,7 @@ public class AccountService {
      */
     @Transactional(readOnly = true)
     public Page<NkAccount> findAll(Pageable pageable) {
-        log.debug("Request to get all NkAccounts");
+        log.debug("Request to get all Accounts");
         return accountRepository.findAll(pageable);
     }
 
@@ -229,17 +191,18 @@ public class AccountService {
      *
      * @return the updated account.
      */
-    public NkAccount updateAvatar(MultipartFile file) {
-        log.debug("Request to update NkAccount avatar");
+    public NkAccount updateAvatar(MultipartFile media) {
+        log.debug("Request to update Account avatar");
         return this.findOneByCurrentUser().map(
                 account -> {
                     String existingAvatar = account.getAvatar();
-                    String[] dirs = { "public", "avatars", };
-                    URL url = fileStorageService.store(file, true, file.getOriginalFilename(), dirs);
-                    account.setAvatar(url.toString());
+                    var file  = fileService.save(List.of(media)).get(0);
+                    account.setAvatar(file.getUrl());
                     accountRepository.save(account);
-                    if (existingAvatar != null && !existingAvatar.isEmpty())
-                        fileStorageService.delete(existingAvatar);
+                    if (existingAvatar != null && !existingAvatar.isEmpty()) {
+                        // [TODO] Make sure to delete the older file.
+                        // fileService.(existingAvatar);
+                    }
                     log.debug("Changed Information for NkAccount: {}", account);
                     return account;
                 }).orElseThrow(AccountNotFoundException::new);
@@ -250,24 +213,24 @@ public class AccountService {
      *
      * @return the updated account.
      */
-    public NkAccount updateBanner(MultipartFile file) {
-        log.debug("Request to update NkAccount banner");
+    public NkAccount updateBanner(MultipartFile media) {
+        log.debug("Request to update Account banner");
         return this.findOneByCurrentUser().map(
                 account -> {
                     String existingBanner = account.getBanner();
-                    String[] dirs = { "public", "banners", };
-                    URL url = fileStorageService.store(file, true, file.getOriginalFilename(), dirs);
-                    account.setBanner(url.toString());
+                    var file = fileService.save(List.of(media)).get(0);
+                    account.setBanner(file.getUrl());
                     accountRepository.save(account);
                     if (existingBanner != null && !existingBanner.isEmpty())
-                        fileStorageService.delete(existingBanner);
+                        // [TODO] Make sure to delete the older file.
+                        // fileService.delete(existingBanner);
                     log.debug("Changed information for NkAccount: {}", account);
                     return account;
                 }).orElseThrow(AccountNotFoundException::new);
     }
 
     public NkAccount followUser(Long targetAccountId) {
-        log.debug("Request to follow an account");
+        log.debug("Request to follow an Account");
         return this.findOneByCurrentUser().map(
                 currAccount -> {
                     NkAccount followed = this.accountRepository.findById(targetAccountId)
@@ -281,7 +244,7 @@ public class AccountService {
     }
 
     public NkAccount unfollowUser(Long targetAccountId) {
-        log.debug("Request to unfollow an account");
+        log.debug("Request to unfollow an Account");
         return this.findOneByCurrentUser().map(
                 currAccount -> {
                     NkAccount followed = new NkAccount().id(targetAccountId);

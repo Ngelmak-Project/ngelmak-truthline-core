@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.ngelmakproject.domain.NkAccount;
-import org.ngelmakproject.domain.NkComment;
 import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.domain.NkPost;
 import org.ngelmakproject.domain.enumeration.Status;
@@ -167,10 +166,7 @@ public class PostService {
     @Transactional(readOnly = true)
     public Optional<NkPost> findOne(Long id) {
         log.debug("Request to get Post : {}", id);
-        return postRepository.findById(id).map(existingPost -> {
-            existingPost.getFiles().removeIf(e -> e.getDeletedAt() != null);
-            return existingPost;
-        });
+        return postRepository.findById(id);
     }
 
     /**

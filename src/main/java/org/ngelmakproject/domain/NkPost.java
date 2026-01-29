@@ -52,6 +52,10 @@ public class NkPost implements Serializable {
     @Column(name = "at", nullable = false)
     private Instant at;
 
+    @JsonIgnore
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     @Column(name = "last_update")
     private Instant lastUpdate;
 
@@ -137,6 +141,19 @@ public class NkPost implements Serializable {
 
     public void setAt(Instant at) {
         this.at = at;
+    }
+
+    public Instant getDeletedAt() {
+        return this.deletedAt;
+    }
+
+    public NkPost deletedAt(Instant deletedAt) {
+        this.setDeletedAt(deletedAt);
+        return this;
+    }
+
+    public void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public Instant getLastUpdate() {
