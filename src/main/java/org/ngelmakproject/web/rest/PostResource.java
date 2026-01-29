@@ -7,12 +7,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import org.ngelmakproject.domain.NkAccount;
 import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.domain.NkPost;
-import org.ngelmakproject.repository.PostRepository;
 import org.ngelmakproject.service.PostService;
 import org.ngelmakproject.web.rest.dto.PageDTO;
+import org.ngelmakproject.web.rest.dto.PostDTO;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.ngelmakproject.web.rest.util.HeaderUtil;
 import org.ngelmakproject.web.rest.util.ResponseUtil;
@@ -49,11 +48,9 @@ public class PostResource {
     private String applicationName;
 
     private final PostService postService;
-    private final PostRepository postRepository;
 
-    public PostResource(PostService postService, PostRepository postRepository) {
+    public PostResource(PostService postService) {
         this.postService = postService;
-        this.postRepository = postRepository;
     }
 
     /**
@@ -138,15 +135,32 @@ public class PostResource {
     /**
      * {@code GET  /posts/account/:id} : get all the posts.
      *
+     * @param accountId of the Post to get.
      * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
      *         of posts in body.
      */
     @GetMapping("/account/{id}")
-    public ResponseEntity<PageDTO<NkPost>> getPostByAccount(@PathVariable("id") Long id, Pageable pageable) {
-        log.debug("REST request to get a page of Posts by NkAccount : {}", id);
+    public ResponseEntity<PageDTO<PostDTO>> getPostByAccount(@PathVariable Long accountId, Pageable pageable) {
+        log.debug("REST request to get a page of Posts by Account : {}", accountId);
+        PageDTO<PostDTO> page = postService.getPostByAccount(accountId, pageable);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
-                .body(new PageDTO<NkPost>(postRepository.findByAccount(new NkAccount().id(id), pageable)));
+                .body(page);
+    }
+
+    /**
+     * {@code GET  /posts/me} : get all the posts of the connected user account.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of posts in body.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<PageDTO<PostDTO>> getPostByAuthenticatedUser(Pageable pageable) {
+        log.debug("REST request to get a page of Posts");
+        PageDTO<PostDTO> page = postService.getPostByAuthenticatedUser(pageable);
+        return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
+                .body(page);
     }
 
     // /**
@@ -175,8 +189,8 @@ public class PostResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
      *         the post, or with status {@code 404 (Not Found)}.
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<NkPost> getPost(@PathVariable("id") Long id) {
+    @GetMapping()
+    public ResponseEntity<NkPost> getPost(@PathVariable Long id) {
         log.debug("REST request to get Post : {}", id);
         Optional<NkPost> post = postService.findOne(id);
         return ResponseUtil.wrapOrNotFound(post);

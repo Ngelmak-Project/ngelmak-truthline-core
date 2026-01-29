@@ -3,16 +3,21 @@ package org.ngelmakproject.service;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.ngelmakproject.domain.NkAccount;
 import org.ngelmakproject.domain.NkFile;
 import org.ngelmakproject.domain.NkPost;
+import org.ngelmakproject.domain.NkReaction;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.PostRepository;
+import org.ngelmakproject.repository.ReactionRepository;
 import org.ngelmakproject.web.rest.dto.PageDTO;
+import org.ngelmakproject.web.rest.dto.PostDTO;
+import org.ngelmakproject.web.rest.dto.ReactionSummaryDTO;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.ngelmakproject.web.rest.errors.ResourceNotFoundException;
@@ -46,13 +51,16 @@ public class PostService {
     private final PostRepository postRepository;
     private final FileService fileService;
     private final AccountService accountService;
+    private final ReactionRepository reactionRepository;
     private final EntityManager entityManager;
 
     PostService(PostRepository postRepository,
             FileService fileService,
+            ReactionRepository reactionRepository,
             AccountService accountService,
             EntityManager entityManager) {
         this.postRepository = postRepository;
+        this.reactionRepository = reactionRepository;
         this.fileService = fileService;
         this.accountService = accountService;
         this.entityManager = entityManager;
@@ -257,14 +265,90 @@ public class PostService {
      * This method is responsible of tracking and updating total comments of Posts.
      * <\p>
      * 
-     * [TODO] This method later should consider reading from Redis database and update automatically the comment count.
+     * [TODO] This method later should consider reading from Redis database and
+     * update automatically the comment count.
      * It should be handle by a cron
      * 
      * @param postId
-     * @param count could be a positive or negative number.
+     * @param count  could be a positive or negative number.
      */
     // @Scheduled(cron = "0 0 2 * * *") // Run daily at 2 AM
     public void updateCommmentCount(Long postId, Integer count) {
         this.postRepository.updatePostCommentCount(postId, count);
     }
+
+    /**
+     * Retrieves a pageable list of all posts enriched with:
+     * <p>
+     * - minimal account information
+     * - attached files
+     * - aggregated reaction summaries (emoji → count + current user reaction)
+     * </p>
+     *
+     * @param pageable
+     * @return
+     */
+    public PageDTO<PostDTO> getPostByAuthenticatedUser(Pageable pageable) {
+        NkAccount account = accountService.findOneByCurrentUser().orElseThrow(AccountNotFoundException::new);
+        List<NkPost> posts = this.postRepository.findByAccount(
+                account.getId(),
+                pageable).getContent();
+        var postDTOs = filloutReactions(posts, account.getId());
+        Page<PostDTO> page = new PageImpl<>(postDTOs, pageable, postDTOs.size());
+        return new PageDTO<>(page);
+    }
+
+    /**
+     * Retrieves a pageable list of validated posts enriched with:
+     * <p>
+     * - minimal account information
+     * - attached files
+     * - aggregated reaction summaries (emoji → count + current user reaction)
+     * </p>
+     *
+     * @param accountId id of the account to which the posts belong.
+     * @param pageable
+     * @return
+     */
+    public PageDTO<PostDTO> getPostByAccount(Long accountId, Pageable pageable) {
+        // 1. Fetch post entries with accounts, and files
+        List<NkPost> posts = this.postRepository.findByAccountAndStatus(
+                accountId,
+                Status.VALIDATED,
+                pageable).getContent();
+        var postDTOs = filloutReactions(posts, accountId);
+        Page<PostDTO> page = new PageImpl<>(postDTOs, pageable, postDTOs.size());
+        return new PageDTO<>(page);
+    }
+
+    /**
+     * This method avoids N+1 queries by:
+     * <p>
+     * 1. Fetching posts with account + files in a single query
+     * 2. Fetching all reactions for all posts in one bulk query
+     * 3. Building reaction summaries in memory
+     * 4. Mapping everything into PostDTO objects
+     * <\p>
+     * 
+     * @param posts
+     * @param accountId
+     * @return
+     */
+    private List<PostDTO> filloutReactions(List<NkPost> posts, Long accountId) {
+        // Extract post IDs
+        List<Long> postIds = posts.stream().map(NkPost::getId).toList();
+        // 2. Bulk fetch reactions for all posts in the feed
+        List<NkReaction> reactions = reactionRepository.findByPostIds(postIds);
+        // 3. Group reactions by postId
+        Map<Long, List<NkReaction>> reactionsByPost = ReactionService.groupReactionsByPost(reactions);
+        // 4. Map post entries to DTOs
+        List<PostDTO> postDTOs = posts.stream().map(post -> {
+            List<NkReaction> postReactions = reactionsByPost.getOrDefault(post.getId(), List.of());
+            ReactionSummaryDTO summary = ReactionSummaryDTO.from(postReactions, accountId);
+            return PostDTO.from(post, summary);
+        }).toList();
+
+        return postDTOs;
+    }
+
 }
