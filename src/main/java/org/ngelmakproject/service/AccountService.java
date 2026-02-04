@@ -33,8 +33,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional
 public class AccountService {
 
-    private static final String ENTITY_NAME = "account";
-
     private static final Logger log = LoggerFactory.getLogger(AccountService.class);
 
     private final AccountRepository accountRepository;
@@ -189,44 +187,58 @@ public class AccountService {
     }
 
     /**
-     * Save or update ngelmak account avatar.
+     * Updates the avatar image of the current user's account.
      *
-     * @return the updated account.
+     * <p>
+     * The method uploads the provided media file, updates the account's avatar URL,
+     * and removes the previously stored avatar if one existed.
+     * </p>
+     *
+     * @param media the new avatar file to upload
+     * @return the updated {@link NkAccount}
+     * @throws AccountNotFoundException if the current user's account cannot be
+     *                                  found
      */
     public NkAccount updateAvatar(MultipartFile media) {
         log.debug("Request to update Account avatar");
         return this.findOneByCurrentUser().map(
                 account -> {
-                    String existingAvatar = account.getAvatar();
-                    var file  = fileService.save(List.of(media)).get(0);
+                    String deletedAvatarUrl = account.getAvatar();
+                    var file = fileService.save(List.of(media)).get(0);
                     account.setAvatar(file.getUrl());
                     accountRepository.save(account);
-                    if (existingAvatar != null && !existingAvatar.isEmpty()) {
-                        // [TODO] Make sure to delete the older file.
-                        // fileService.(existingAvatar);
+                    if (deletedAvatarUrl != null && !deletedAvatarUrl.isEmpty()) {
+                        fileService.deleteByUrls(List.of(deletedAvatarUrl));
                     }
-                    log.debug("Changed Information for NkAccount: {}", account);
+                    log.debug("Changed Information for Account: {}", account);
                     return account;
                 }).orElseThrow(AccountNotFoundException::new);
     }
 
     /**
-     * Save or update ngelmak account banner.
+     * Updates the banner image of the current user's account.
      *
-     * @return the updated account.
+     * <p>
+     * The method uploads the provided media file, updates the account's banner URL,
+     * and removes the previously stored banner if one existed.
+     * </p>
+     *
+     * @param media the new banner file to upload
+     * @return the updated {@link NkAccount}
+     * @throws AccountNotFoundException if the current user's account cannot be
+     *                                  found
      */
     public NkAccount updateBanner(MultipartFile media) {
         log.debug("Request to update Account banner");
         return this.findOneByCurrentUser().map(
                 account -> {
-                    String existingBanner = account.getBanner();
+                    String deletedBannerUrl = account.getBanner();
                     var file = fileService.save(List.of(media)).get(0);
                     account.setBanner(file.getUrl());
                     accountRepository.save(account);
-                    if (existingBanner != null && !existingBanner.isEmpty())
-                        // [TODO] Make sure to delete the older file.
-                        // fileService.delete(existingBanner);
-                    log.debug("Changed information for NkAccount: {}", account);
+                    if (deletedBannerUrl != null && !deletedBannerUrl.isEmpty())
+                        fileService.deleteByUrls(List.of(deletedBannerUrl));
+                    log.debug("Changed information for Account: {}", account);
                     return account;
                 }).orElseThrow(AccountNotFoundException::new);
     }

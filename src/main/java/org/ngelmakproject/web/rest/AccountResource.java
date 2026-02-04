@@ -106,7 +106,7 @@ public class AccountResource {
     @PutMapping("")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AccountDTO> updateAccount(@Valid @RequestBody NkAccount account) {
-        log.info("REST request to update Account : {}", account);
+        log.debug("REST request to update Account : {}", account);
         if (account.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
@@ -203,10 +203,11 @@ public class AccountResource {
      * @return the current user.
      */
     @PutMapping("/upload-avatar")
-    // @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.USER + "\")")
-    public ResponseEntity<NkAccount> updateAvatar(@RequestParam("file") MultipartFile file) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AccountDTO> updateAvatar(@RequestParam("file") MultipartFile file) {
         log.debug("REST request to upload the user's account avatar");
-        return ResponseEntity.ok().body(accountService.updateAvatar(file));
+        var updatedAccount = accountService.updateAvatar(file);
+        return ResponseEntity.ok().body(AccountDTO.from(updatedAccount));
     }
 
     /**
@@ -217,9 +218,10 @@ public class AccountResource {
      * @return the current user.
      */
     @PutMapping("/upload-banner")
-    // @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.USER + "\")")
-    public ResponseEntity<NkAccount> updateBanner(@RequestParam("file") MultipartFile file) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AccountDTO> updateBanner(@RequestParam("file") MultipartFile file) {
         log.debug("REST request to upload the user's account banner");
-        return ResponseEntity.ok().body(accountService.updateBanner(file));
+        var updatedAccount = accountService.updateBanner(file);
+        return ResponseEntity.ok().body(AccountDTO.from(updatedAccount));
     }
 }

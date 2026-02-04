@@ -21,6 +21,8 @@ public interface FileRepository extends JpaRepository<NkFile, Long> {
 
   List<NkFile> findByHashIn(Iterable<String> hashes);
 
+  List<NkFile> findByUrlIn(Iterable<String> urls);
+
   /**
    * Increments usageCount for all files in the given list.
    *

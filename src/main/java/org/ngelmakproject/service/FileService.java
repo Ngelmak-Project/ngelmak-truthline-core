@@ -142,6 +142,18 @@ public class FileService {
     }
 
     /**
+     * Marks the given files for deletion by decrementing their usage count.
+     * Actual removal is handled later by the cleanup cron.
+     * 
+     * @param files to delete
+     */
+    public void deleteByUrls(List<String> urls) {
+        log.debug("Request to delete Files with urls: {}", urls);
+        var files = fileRepository.findByUrlIn(urls);
+        delete(files);
+    }
+
+    /**
      * Decrements usageCount for all given file IDs.
      * Files reaching usageCount = 0 become eligible for cleanup.
      * 
