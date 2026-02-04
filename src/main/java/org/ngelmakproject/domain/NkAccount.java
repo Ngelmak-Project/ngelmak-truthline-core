@@ -81,7 +81,7 @@ public class NkAccount implements Serializable {
     private Instant createdAt;
 
     @JsonIgnore
-    @Column(name = "deleted_at", nullable = false)
+    @Column(name = "deleted_at", nullable = true)
     private Instant deletedAt;
 
     /**
