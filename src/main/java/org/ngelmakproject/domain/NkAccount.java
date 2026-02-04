@@ -82,7 +82,7 @@ public class NkAccount implements Serializable {
 
     @JsonIgnore
     @Column(name = "deleted_at", nullable = false)
-    private Instant deletetedAt;
+    private Instant deletedAt;
 
     /**
      * a default configuration can be set for visibility of posts and their eventual
@@ -251,16 +251,16 @@ public class NkAccount implements Serializable {
     }
 
     public Instant getDeletedAt() {
-        return this.deletetedAt;
+        return this.deletedAt;
     }
 
-    public NkAccount deletetedAt(Instant deletetedAt) {
-        this.setDeletedAt(deletetedAt);
+    public NkAccount deletedAt(Instant deletedAt) {
+        this.setDeletedAt(deletedAt);
         return this;
     }
 
-    public void setDeletedAt(Instant deletetedAt) {
-        this.deletetedAt = deletetedAt;
+    public void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public NkConfig getConfiguration() {
