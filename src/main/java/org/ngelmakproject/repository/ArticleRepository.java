@@ -57,7 +57,7 @@ public interface ArticleRepository extends JpaRepository<NkArticle, Long> {
   //     "WHERE article.id = ?1")
   Optional<NkArticle> findById(Long id);
 
-  @Query("SELECT a FROM NkAccount a WHERE a.account.id = :accountId")
+  @Query("SELECT a FROM NkArticle a WHERE a.account.id = :accountId")
   Slice<NkArticle> findByAccount(@Param("accountId") Long accountId, Pageable pageable);
 
   Slice<NkArticle> findByAccount(NkAccount account, Pageable pageable);
