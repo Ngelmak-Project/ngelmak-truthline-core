@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class GatewayAuthenticationFilter extends OncePerRequestFilter {
+
   private static final Logger log = LoggerFactory.getLogger(GatewayAuthenticationFilter.class);
 
   @Override
@@ -29,16 +30,26 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
       FilterChain filterChain)
       throws ServletException, IOException {
 
+    String method = request.getMethod();
+
+    // Only apply authentication on POST, PUT, DELETE
+    if (!method.equals("POST") && !method.equals("PUT") && !method.equals("DELETE")) {
+      filterChain.doFilter(request, response);
+      return;
+    }
+
     String userId = request.getHeader("X-User-Id");
     String username = request.getHeader("X-User-Username");
     String authoritiesStr = request.getHeader("X-User-Authorities");
 
     log.info("\n" +
         "========< Gateway Auth Filter >=========\n" +
+        "Method              : {}\n" +
         "X-User-Id          : {}\n" +
         "X-User-Username    : {}\n" +
         "X-User-Authorities : {}\n" +
-        "========================================", userId, username, authoritiesStr);
+        "========================================",
+        method, userId, username, authoritiesStr);
 
     if (userId != null && username != null && authoritiesStr != null) {
 
