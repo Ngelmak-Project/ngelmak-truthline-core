@@ -87,7 +87,7 @@ debug: true
 file:
   upload-directory:
     # Absolute path where files are physically stored
-    location: /ngelmak/ngekmak-core/static/uploads/storage
+    location: /ngelmak/ngelmak-core/static/uploads/storage
   public:
     # Public URL prefix (what users see)
     access.location: /public

@@ -6,7 +6,7 @@ services:
     ports:
       - "5742:5742"
     volumes:
-      - ./data:/ngelmak/ngelmak-core
+      - ./data/storage:/ngelmak/ngelmak-core/static/uploads/storage
     networks:
       - ngelmak-net
 
