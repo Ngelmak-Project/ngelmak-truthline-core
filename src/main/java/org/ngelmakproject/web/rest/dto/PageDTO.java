@@ -8,14 +8,14 @@ import org.springframework.data.domain.Slice;
 
 public class PageDTO<T> {
   private List<T> content; // The actual page content (list of elements)
-  private int number; // Current page number
-  private int size; // Number of elements per page
-  private long totalElements; // Total number of elements across all pages
-  private int totalPages; // Total number of pages
-  private boolean isLast; // Is this the last page
-  private boolean isFirst; // Is this the first page
-  private boolean hasNext; // Is there a next page
-  private boolean hasPrevious; // Is there a previous page
+  private Integer number; // Current page number
+  private Integer size; // Number of elements per page
+  private Long totalElements; // Total number of elements across all pages
+  private Integer totalPages; // Total number of pages
+  private Boolean isLast; // Is this the last page
+  private Boolean isFirst; // Is this the first page
+  private Boolean hasNext; // Is there a next page
+  private Boolean hasPrevious; // Is there a previous page
   private List<SortDTO> sorts; // Sorting information
 
   public PageDTO(Page<T> page) {
@@ -37,10 +37,10 @@ public class PageDTO<T> {
     content = page.getContent();
     number = page.getNumber();
     size = page.getSize();
-    isFirst = page.isFirst();
-    isLast = page.isLast();
-    hasNext = page.hasNext();
-    hasPrevious = page.hasPrevious();
+    isFirst = null;
+    isLast = null;
+    hasNext = page.getSize() == content.size();
+    hasPrevious = null;
     sorts = page.getSort().stream()
         .map(order -> new SortDTO(order.getProperty(), order.getDirection().name()))
         .collect(Collectors.toList());
@@ -131,5 +131,5 @@ public class PageDTO<T> {
     return "PageDTO [number=" + number + ", size=" + size + ", totalElements=" + totalElements
         + ", totalPages=" + totalPages + ", isLast=" + isLast + ", isFirst=" + isFirst + ", hasNext=" + hasNext
         + ", hasPrevious=" + hasPrevious + ", sorts=" + sorts + "]";
-  }  
+  }
 }

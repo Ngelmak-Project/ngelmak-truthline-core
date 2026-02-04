@@ -1,6 +1,5 @@
 package org.ngelmakproject.web.rest;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
@@ -73,13 +72,11 @@ public class AccountResource {
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
      *         body the new account, or with status {@code 400 (Bad Request)} if
      *         the account has already an ID.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<NkAccount> createAccount(Authentication authentication,
-            @Valid @RequestBody NkAccount account)
-            throws URISyntaxException {
+            @Valid @RequestBody NkAccount account) {
         log.debug("REST request to save Account : {}", account);
         if (account.getId() != null) {
             throw new BadRequestAlertException("A new account cannot already have an ID", ENTITY_NAME, "idexists");
@@ -90,7 +87,7 @@ public class AccountResource {
         }
         account.setUser(principal.getUserId());
         var newAccount = accountService.save(account);
-        return ResponseEntity.created(new URI("/api/accounts/" + newAccount.getId()))
+        return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         newAccount.getId().toString()))
                 .body(newAccount);
@@ -111,8 +108,8 @@ public class AccountResource {
      */
     @PutMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<NkAccount> updateAccount(@Valid @RequestBody NkAccount account) throws URISyntaxException {
-        log.debug("REST request to update Account : {}", account);
+    public ResponseEntity<NkAccount> updateAccount(@Valid @RequestBody NkAccount account) {
+        log.info("REST request to update Account : {}", account);
         if (account.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
