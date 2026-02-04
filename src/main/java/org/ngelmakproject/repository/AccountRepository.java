@@ -18,5 +18,4 @@ public interface AccountRepository extends JpaRepository<NkAccount, Long> {
 
     Boolean existsByIdentifier(String identifier);
 
-    Slice<NkAccount> findByAll(Pageable pageable);
 }
