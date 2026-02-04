@@ -233,9 +233,10 @@ public class ArticleService {
                     article.setVisibility(Visibility.valueOf(t.get("visibility", String.class)));
                     article.setContent(t.get("content", String.class));
                     article.setStatus(Status.valueOf(t.get("status", String.class)));
-                    article.setAccount(
-                                    new NkAccount().id(t.get("id", Long.class))
-                                            .name(t.get("account_name", String.class)));
+                    var account = new NkAccount();
+                    account.setId(t.get("id", Long.class));
+                    account.setName(t.get("account_name", String.class));
+                    article.setAccount(account);
                     // article.articleReply(
                     //                 new NkArticle()
                     //                         .id(t.get("article_reference_id", Long.class))

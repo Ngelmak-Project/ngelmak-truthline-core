@@ -8,6 +8,7 @@ import org.ngelmakproject.domain.NkArticle;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -56,7 +57,10 @@ public interface ArticleRepository extends JpaRepository<NkArticle, Long> {
   //     "WHERE article.id = ?1")
   Optional<NkArticle> findById(Long id);
 
-  Page<NkArticle> findByAccount(NkAccount account, Pageable pageable);
+  @Query("SELECT a FROM NkAccount a WHERE a.account.id = :accountId")
+  Slice<NkArticle> findByAccount(@Param("accountId") Long accountId, Pageable pageable);
 
-  Page<NkArticle> findByStatusOrderByAtDesc(Status status, Pageable pageable);
+  Slice<NkArticle> findByAccount(NkAccount account, Pageable pageable);
+
+  Slice<NkArticle> findByStatusOrderByAtDesc(Status status, Pageable pageable);
 }

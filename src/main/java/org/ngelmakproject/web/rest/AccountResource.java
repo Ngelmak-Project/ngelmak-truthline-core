@@ -1,23 +1,21 @@
 package org.ngelmakproject.web.rest;
 
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Optional;
 
 import org.ngelmakproject.domain.NkAccount;
 import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.AccountService;
+import org.ngelmakproject.web.rest.dto.AccountDTO;
+import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.ngelmakproject.web.rest.errors.UnauthorizedResourceAccessException;
 import org.ngelmakproject.web.rest.util.HeaderUtil;
-import org.ngelmakproject.web.rest.util.PaginationUtil;
 import org.ngelmakproject.web.rest.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.validation.Valid;
 
@@ -75,7 +72,7 @@ public class AccountResource {
      */
     @PostMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<NkAccount> createAccount(Authentication authentication,
+    public ResponseEntity<AccountDTO> createAccount(Authentication authentication,
             @Valid @RequestBody NkAccount account) {
         log.debug("REST request to save Account : {}", account);
         if (account.getId() != null) {
@@ -90,7 +87,7 @@ public class AccountResource {
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, ENTITY_NAME,
                         newAccount.getId().toString()))
-                .body(newAccount);
+                .body(AccountDTO.from(newAccount));
     }
 
     /**
@@ -108,7 +105,7 @@ public class AccountResource {
      */
     @PutMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<NkAccount> updateAccount(@Valid @RequestBody NkAccount account) {
+    public ResponseEntity<AccountDTO> updateAccount(@Valid @RequestBody NkAccount account) {
         log.info("REST request to update Account : {}", account);
         if (account.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -117,7 +114,7 @@ public class AccountResource {
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, ENTITY_NAME,
                         newAccount.getId().toString()))
-                .body(newAccount);
+                .body(AccountDTO.from(newAccount));
     }
 
     /**
@@ -129,12 +126,10 @@ public class AccountResource {
      */
     @GetMapping("")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<List<NkAccount>> getAllAccounts(Pageable pageable) {
+    public ResponseEntity<PageDTO<AccountDTO>> getAllAccounts(Pageable pageable) {
         log.debug("REST request to get a page of NkAccounts");
-        Page<NkAccount> page = accountService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil
-                .generatePaginationHttpHeaders(page, ServletUriComponentsBuilder.fromCurrentRequest().toString());
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
+        var page = new PageDTO<>(accountService.findAll(pageable));
+        return ResponseEntity.ok().body(page);
     }
 
     /**

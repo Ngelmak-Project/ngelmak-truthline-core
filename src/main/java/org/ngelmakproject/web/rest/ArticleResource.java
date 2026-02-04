@@ -179,7 +179,7 @@ public class ArticleResource {
     public ResponseEntity<PageDTO<NkArticle>> getArticleByAccount(@PathVariable("id") Long id, Pageable pageable) {
         log.debug("REST request to get a page of Articles by NkAccount : {}", id);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
-                .body(new PageDTO<NkArticle>(postRepository.findByAccount(new NkAccount().id(id), pageable)));
+                .body(new PageDTO<NkArticle>(postRepository.findByAccount(id, pageable)));
     }
 
     // /**

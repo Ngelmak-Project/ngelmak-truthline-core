@@ -134,25 +134,15 @@ public class NkAccount implements Serializable {
     private Set<NkReview> reviews = new HashSet<>();
 
     public Long getId() {
-        return this.id;
+        return id;
     }
 
-    public NkAccount id(Long id) {
-        this.setId(id);
-        return this;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void setId(Long user) {
-        this.user = user;
-    }
-    
     public Long getUser() {
-        return this.id;
-    }
-
-    public NkAccount user(Long user) {
-        this.setUser(user);
-        return this;
+        return user;
     }
 
     public void setUser(Long user) {
@@ -160,12 +150,7 @@ public class NkAccount implements Serializable {
     }
 
     public String getIdentifier() {
-        return this.identifier;
-    }
-
-    public NkAccount identifier(String identifier) {
-        this.setIdentifier(identifier);
-        return this;
+        return identifier;
     }
 
     public void setIdentifier(String identifier) {
@@ -173,12 +158,7 @@ public class NkAccount implements Serializable {
     }
 
     public String getName() {
-        return this.name;
-    }
-
-    public NkAccount name(String name) {
-        this.setName(name);
-        return this;
+        return name;
     }
 
     public void setName(String name) {
@@ -186,12 +166,7 @@ public class NkAccount implements Serializable {
     }
 
     public String getDescription() {
-        return this.description;
-    }
-
-    public NkAccount description(String description) {
-        this.setDescription(description);
-        return this;
+        return description;
     }
 
     public void setDescription(String description) {
@@ -199,12 +174,7 @@ public class NkAccount implements Serializable {
     }
 
     public String getAvatar() {
-        return this.avatar;
-    }
-
-    public NkAccount avatar(String avatar) {
-        this.setAvatar(avatar);
-        return this;
+        return avatar;
     }
 
     public void setAvatar(String avatar) {
@@ -212,12 +182,7 @@ public class NkAccount implements Serializable {
     }
 
     public String getBanner() {
-        return this.banner;
-    }
-
-    public NkAccount banner(String banner) {
-        this.setBanner(banner);
-        return this;
+        return banner;
     }
 
     public void setBanner(String banner) {
@@ -225,12 +190,7 @@ public class NkAccount implements Serializable {
     }
 
     public Accessibility getVisibility() {
-        return this.visibility;
-    }
-
-    public NkAccount visibility(Accessibility visibility) {
-        this.setVisibility(visibility);
-        return this;
+        return visibility;
     }
 
     public void setVisibility(Accessibility visibility) {
@@ -238,12 +198,7 @@ public class NkAccount implements Serializable {
     }
 
     public Instant getCreatedAt() {
-        return this.createdAt;
-    }
-
-    public NkAccount createdAt(Instant createdAt) {
-        this.setCreatedAt(createdAt);
-        return this;
+        return createdAt;
     }
 
     public void setCreatedAt(Instant createdAt) {
@@ -251,12 +206,7 @@ public class NkAccount implements Serializable {
     }
 
     public Instant getDeletedAt() {
-        return this.deletedAt;
-    }
-
-    public NkAccount deletedAt(Instant deletedAt) {
-        this.setDeletedAt(deletedAt);
-        return this;
+        return deletedAt;
     }
 
     public void setDeletedAt(Instant deletedAt) {
@@ -264,263 +214,68 @@ public class NkAccount implements Serializable {
     }
 
     public NkConfig getConfiguration() {
-        return this.configuration;
+        return configuration;
     }
 
-    public void setConfiguration(NkConfig config) {
-        this.configuration = config;
-    }
-
-    public NkAccount configuration(NkConfig config) {
-        this.setConfiguration(config);
-        return this;
+    public void setConfiguration(NkConfig configuration) {
+        this.configuration = configuration;
     }
 
     public Set<NkTicket> getReports() {
-        return this.reports;
+        return reports;
     }
 
-    public void setReports(Set<NkTicket> tickets) {
-        if (this.reports != null) {
-            this.reports.forEach(i -> i.setAccountRelated(null));
-        }
-        if (tickets != null) {
-            tickets.forEach(i -> i.setAccountRelated(this));
-        }
-        this.reports = tickets;
-    }
-
-    public NkAccount reports(Set<NkTicket> tickets) {
-        this.setReports(tickets);
-        return this;
-    }
-
-    public NkAccount addReports(NkTicket ticket) {
-        this.reports.add(ticket);
-        ticket.setAccountRelated(this);
-        return this;
-    }
-
-    public NkAccount removeReports(NkTicket ticket) {
-        this.reports.remove(ticket);
-        ticket.setAccountRelated(null);
-        return this;
+    public void setReports(Set<NkTicket> reports) {
+        this.reports = reports;
     }
 
     public Set<NkTicket> getOwners() {
-        return this.owners;
+        return owners;
     }
 
-    public void setOwners(Set<NkTicket> tickets) {
-        if (this.owners != null) {
-            this.owners.forEach(i -> i.setIssuedby(null));
-        }
-        if (tickets != null) {
-            tickets.forEach(i -> i.setIssuedby(this));
-        }
-        this.owners = tickets;
-    }
-
-    public NkAccount owners(Set<NkTicket> tickets) {
-        this.setOwners(tickets);
-        return this;
-    }
-
-    public NkAccount addOwners(NkTicket ticket) {
-        this.owners.add(ticket);
-        ticket.setIssuedby(this);
-        return this;
-    }
-
-    public NkAccount removeOwners(NkTicket ticket) {
-        this.owners.remove(ticket);
-        ticket.setIssuedby(null);
-        return this;
+    public void setOwners(Set<NkTicket> owners) {
+        this.owners = owners;
     }
 
     public Set<NkComment> getComments() {
-        return this.comments;
+        return comments;
     }
 
     public void setComments(Set<NkComment> comments) {
-        if (this.comments != null) {
-            this.comments.forEach(i -> i.setAccount(null));
-        }
-        if (comments != null) {
-            comments.forEach(i -> i.setAccount(this));
-        }
         this.comments = comments;
     }
 
-    public NkAccount comments(Set<NkComment> comments) {
-        this.setComments(comments);
-        return this;
-    }
-
-    public NkAccount addComment(NkComment comment) {
-        this.comments.add(comment);
-        comment.setAccount(this);
-        return this;
-    }
-
-    public NkAccount removeComment(NkComment comment) {
-        this.comments.remove(comment);
-        comment.setAccount(null);
-        return this;
-    }
-
     public Set<NkMembership> getMemberships() {
-        return this.memberships;
+        return memberships;
     }
 
     public void setMemberships(Set<NkMembership> memberships) {
-        if (this.memberships != null) {
-            this.memberships.forEach(i -> i.setFollower(null));
-        }
-        if (memberships != null) {
-            memberships.forEach(i -> i.setFollower(this));
-        }
         this.memberships = memberships;
     }
 
-    public NkAccount memberships(Set<NkMembership> memberships) {
-        this.setMemberships(memberships);
-        return this;
-    }
-
-    public NkAccount addMemberships(NkMembership membership) {
-        this.memberships.add(membership);
-        membership.setFollower(this);
-        return this;
-    }
-
-    public NkAccount removeMemberships(NkMembership membership) {
-        this.memberships.remove(membership);
-        membership.setFollower(null);
-        return this;
-    }
-
     public Set<NkMembership> getSubscriptions() {
-        return this.subscriptions;
+        return subscriptions;
     }
 
-    public void setSubscriptions(Set<NkMembership> memberships) {
-        if (this.subscriptions != null) {
-            this.subscriptions.forEach(i -> i.setFollower(null));
-        }
-        if (memberships != null) {
-            memberships.forEach(i -> i.setFollower(this));
-        }
-        this.subscriptions = memberships;
-    }
-
-    public NkAccount subscriptions(Set<NkMembership> memberships) {
-        this.setSubscriptions(memberships);
-        return this;
-    }
-
-    public NkAccount addSubscriptions(NkMembership membership) {
-        this.subscriptions.add(membership);
-        membership.setFollower(this);
-        return this;
-    }
-
-    public NkAccount removeSubscriptions(NkMembership membership) {
-        this.subscriptions.remove(membership);
-        membership.setFollower(null);
-        return this;
+    public void setSubscriptions(Set<NkMembership> subscriptions) {
+        this.subscriptions = subscriptions;
     }
 
     public Set<NkPost> getPosts() {
-        return this.posts;
+        return posts;
     }
 
     public void setPosts(Set<NkPost> posts) {
-        if (this.posts != null) {
-            this.posts.forEach(i -> i.setAccount(null));
-        }
-        if (posts != null) {
-            posts.forEach(i -> i.setAccount(this));
-        }
         this.posts = posts;
     }
 
-    public NkAccount posts(Set<NkPost> posts) {
-        this.setPosts(posts);
-        return this;
-    }
-
-    public NkAccount addPost(NkPost post) {
-        this.posts.add(post);
-        post.setAccount(this);
-        return this;
-    }
-
-    public NkAccount removePost(NkPost post) {
-        this.posts.remove(post);
-        post.setAccount(null);
-        return this;
-    }
-
     public Set<NkReview> getReviews() {
-        return this.reviews;
+        return reviews;
     }
 
     public void setReviews(Set<NkReview> reviews) {
-        if (this.reviews != null) {
-            this.reviews.forEach(i -> i.setAccount(null));
-        }
-        if (reviews != null) {
-            reviews.forEach(i -> i.setAccount(this));
-        }
         this.reviews = reviews;
     }
 
-    public NkAccount reviews(Set<NkReview> reviews) {
-        this.setReviews(reviews);
-        return this;
-    }
-
-    public NkAccount addReview(NkReview review) {
-        this.reviews.add(review);
-        review.setAccount(this);
-        return this;
-    }
-
-    public NkAccount removeReview(NkReview review) {
-        this.reviews.remove(review);
-        review.setAccount(null);
-        return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof NkAccount)) {
-            return false;
-        }
-        return getId() != null && getId().equals(((NkAccount) o).getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
-    // prettier-ignore
-    @Override
-    public String toString() {
-        return "NkAccount{" +
-                "id=" + getId() +
-                ", identifier='" + getIdentifier() + "'" +
-                ", name='" + getName() + "'" +
-                ", description='" + getDescription() + "'" +
-                ", avatar='" + getAvatar() + "'" +
-                ", banner='" + getBanner() + "'" +
-                ", visibility='" + getVisibility() + "'" +
-                ", created_at='" + getCreatedAt() + "'" +
-                "}";
-    }
+    
 }

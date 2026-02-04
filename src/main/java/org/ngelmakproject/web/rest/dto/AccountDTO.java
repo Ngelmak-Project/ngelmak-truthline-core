@@ -7,6 +7,7 @@ public record AccountDTO(
         String identifier,
         String name,
         String avatar,
+        String banner,
         Long userId) {
     public static AccountDTO from(NkAccount a) {
         if (a == null)
@@ -16,6 +17,7 @@ public record AccountDTO(
                 a.getIdentifier(),
                 a.getName(),
                 a.getAvatar(),
+                a.getBanner(),
                 a.getUser());
     }
 }

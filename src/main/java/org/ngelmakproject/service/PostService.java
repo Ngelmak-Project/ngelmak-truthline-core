@@ -236,6 +236,9 @@ public class PostService {
         List<NkPost> posts = result.stream()
                 .map(t -> {
                     NkPost post = new NkPost();
+                    var account = new NkAccount();
+                    account.setId(t.get("account_id", Long.class));
+                    account.setName(t.get("account_name", String.class));
                     // java.time.Instant
                     post.id(t.get("id", Long.class))
                             .keywords(t.get("keywords", String.class))
@@ -244,9 +247,7 @@ public class PostService {
                             .visibility(Visibility.valueOf(t.get("visibility", String.class)))
                             .content(t.get("content", String.class))
                             .status(Status.valueOf(t.get("status", String.class)))
-                            .account(
-                                    new NkAccount().id(t.get("id", Long.class))
-                                            .name(t.get("account_name", String.class)))
+                            .account(account)
                             .postReply(
                                     new NkPost()
                                             .id(t.get("post_reference_id", Long.class))

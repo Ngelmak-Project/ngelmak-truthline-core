@@ -12,6 +12,7 @@ import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.AccountRepository;
 import org.ngelmakproject.repository.MembershipRepository;
 import org.ngelmakproject.security.UserPrincipal;
+import org.ngelmakproject.web.rest.dto.AccountDTO;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +69,8 @@ public class AccountService {
         while (accountRepository.existsByIdentifier(identifier)) {
             identifier = base + "-" + counter++;
         }
-        account.identifier(identifier).createdAt(Instant.now());
+        account.setIdentifier(identifier);
+        account.setCreatedAt(Instant.now());
 
         /* 2. default config for the account */
         NkConfig defaultConfig = new NkConfig();
@@ -124,9 +126,9 @@ public class AccountService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<NkAccount> findAll(Pageable pageable) {
+    public Page<AccountDTO> findAll(Pageable pageable) {
         log.debug("Request to get all Accounts");
-        return accountRepository.findAll(pageable);
+        return accountRepository.findAll(pageable).map(AccountDTO::from);
     }
 
     /**
@@ -247,8 +249,7 @@ public class AccountService {
         log.debug("Request to unfollow an Account");
         return this.findOneByCurrentUser().map(
                 currAccount -> {
-                    NkAccount followed = new NkAccount().id(targetAccountId);
-                    membershipRepository.findOneByFollowingAndFollower(followed, currAccount)
+                    membershipRepository.findOneByFollowingAndFollower(targetAccountId, currAccount.getId())
                             .ifPresent(membership -> this.membershipRepository.delete(membership));
                     log.debug("NkMembership is now removed.", currAccount);
                     return currAccount;
