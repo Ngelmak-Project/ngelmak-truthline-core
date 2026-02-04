@@ -200,9 +200,9 @@ public class AccountService {
      *                                  found
      */
     public NkAccount updateAvatar(MultipartFile media) {
-        log.debug("Request to update Account avatar");
         return this.findOneByCurrentUser().map(
-                account -> {
+            account -> {
+                    log.info("Request to update Account avatar : {}", account);
                     String deletedAvatarUrl = account.getAvatar();
                     var file = fileService.save(List.of(media)).get(0);
                     account.setAvatar(file.getUrl());
