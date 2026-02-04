@@ -5,6 +5,8 @@ services:
     container_name: ngelmak-core
     ports:
       - "5742:5742"
+    volumes:
+      - ./data:/ngelmak
     networks:
       - ngelmak-net
 
