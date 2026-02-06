@@ -142,7 +142,7 @@ public class AccountResource {
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<NkAccount> personalAccount(Authentication authentication) {
-        log.debug("REST request to get connected Account");
+        log.info("REST request to get connected Account");
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
         log.info("​🦋 User details {}", principal);
         Optional<NkAccount> account = accountService.findOneByCurrentUser();

@@ -33,27 +33,27 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
     String method = request.getMethod();
 
     String userId = request.getHeader("X-User-Id");
-    String username = request.getHeader("X-User-Username");
+    String login = request.getHeader("X-User-Login");
     String authoritiesStr = request.getHeader("X-User-Authorities");
 
     // Only show log authentication on POST, PUT, DELETE
     if (!method.equals("POST") && !method.equals("PUT") && !method.equals("DELETE")) {
       log.info("\n" +
           "========< Gateway Auth Filter >=========\n" +
-          "Method              : {}\n" +
+          "Method             : {}\n" +
           "X-User-Id          : {}\n" +
-          "X-User-Username    : {}\n" +
+          "X-User-Login       : {}\n" +
           "X-User-Authorities : {}\n" +
           "========================================",
-          method, userId, username, authoritiesStr);
+          method, userId, login, authoritiesStr);
     }
 
-    if (userId != null && username != null && authoritiesStr != null) {
+    if (userId != null && login != null && authoritiesStr != null) {
 
       Set<String> roles = Arrays.stream(authoritiesStr.split(","))
           .collect(Collectors.toSet());
 
-      UserPrincipal principal = new UserPrincipal(Long.parseLong(userId), username, roles);
+      UserPrincipal principal = new UserPrincipal(Long.parseLong(userId), login, roles);
 
       List<SimpleGrantedAuthority> authorities = roles.stream()
           .map(SimpleGrantedAuthority::new)
