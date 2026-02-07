@@ -162,7 +162,7 @@ public class ArticleService {
         if (query.length() > 5) {
             return fullTextSearch(query, pageable);
         }
-        return new PageDTO<>(articleRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable));
+        return PageDTO.from(articleRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable));
     }
 
     /**
@@ -246,6 +246,6 @@ public class ArticleService {
                 })
                 .collect(Collectors.toList());
         Page<NkArticle> page = new PageImpl<>(articles, pageable, articles.size());
-        return new PageDTO<>(page);
+        return PageDTO.from(page);
     }
 }

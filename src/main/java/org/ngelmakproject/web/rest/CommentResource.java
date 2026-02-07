@@ -126,8 +126,7 @@ public class CommentResource {
         }
         Slice<CommentDTO> page = commentRepository.findCommentsByAccountOrByAtDesc(id, pageable)
                 .map(c -> CommentDTO.from(c));
-        var newPage = new PageDTO<>(page);
-        return ResponseEntity.ok().body(newPage);
+        return ResponseEntity.ok().body(PageDTO.from(page));
     }
 
     /**
@@ -145,8 +144,7 @@ public class CommentResource {
         }
         Slice<CommentDTO> page = commentRepository.findTopLevelCommentsByPost(id, pageable)
                 .map(c -> CommentDTO.from(c));
-        var newPage = new PageDTO<>(page);
-        return ResponseEntity.ok().body(newPage);
+        return ResponseEntity.ok().body(PageDTO.from(page));
     }
 
     @GetMapping("/reply/{id}")

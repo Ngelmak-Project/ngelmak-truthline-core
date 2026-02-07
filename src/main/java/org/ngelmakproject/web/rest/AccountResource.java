@@ -128,8 +128,7 @@ public class AccountResource {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<PageDTO<AccountDTO>> getAllAccounts(Pageable pageable) {
         log.debug("REST request to get a page of NkAccounts");
-        var page = new PageDTO<>(accountService.findAll(pageable));
-        return ResponseEntity.ok().body(page);
+        return ResponseEntity.ok().body(PageDTO.from(accountService.findAll(pageable)));
     }
 
     /**

@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import org.ngelmakproject.domain.NkAccount;
 import org.ngelmakproject.domain.NkArticle;
 import org.ngelmakproject.domain.NkAttachment;
 import org.ngelmakproject.repository.ArticleRepository;
@@ -179,7 +178,7 @@ public class ArticleResource {
     public ResponseEntity<PageDTO<NkArticle>> getArticleByAccount(@PathVariable("id") Long id, Pageable pageable) {
         log.debug("REST request to get a page of Articles by NkAccount : {}", id);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
-                .body(new PageDTO<NkArticle>(postRepository.findByAccount(id, pageable)));
+                .body(PageDTO.from(postRepository.findByAccount(id, pageable)));
     }
 
     // /**

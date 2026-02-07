@@ -134,6 +134,6 @@ public class FeedService {
         }).toList();
 
         Page<FeedDTO> page = new PageImpl<>(feedDTOs, pageable, feedDTOs.size());
-        return new PageDTO<>(page);
+        return PageDTO.from(page);
     }
 }

@@ -162,7 +162,7 @@ public class PostService {
             return fullTextSearch(query, pageable);
         }
         Slice<NkPost> page = postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
-        return new PageDTO<>(page);
+        return PageDTO.from(page);
     }
 
     /**
@@ -256,7 +256,7 @@ public class PostService {
                 })
                 .collect(Collectors.toList());
         Page<NkPost> page = new PageImpl<>(posts, pageable, posts.size());
-        return new PageDTO<>(page);
+        return PageDTO.from(page);
     }
 
     /**
@@ -296,7 +296,7 @@ public class PostService {
                 pageable).getContent();
         var postDTOs = filloutReactions(posts, account.getId());
         Page<PostDTO> page = new PageImpl<>(postDTOs, pageable, postDTOs.size());
-        return new PageDTO<>(page);
+        return PageDTO.from(page);
     }
 
     /**
@@ -319,7 +319,7 @@ public class PostService {
                 pageable).getContent();
         var postDTOs = filloutReactions(posts, accountId);
         Page<PostDTO> page = new PageImpl<>(postDTOs, pageable, postDTOs.size());
-        return new PageDTO<>(page);
+        return PageDTO.from(page);
     }
 
     /**
