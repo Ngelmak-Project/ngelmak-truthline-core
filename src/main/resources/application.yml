@@ -96,6 +96,6 @@ file:
 
 gateway:
   public:
-    host: acemagic
-    protocol: http
-    port: 4000
+    host: api.ngelmak.org
+    protocol: https
+    port: 443
