@@ -111,6 +111,26 @@ public class CommentResource {
     }
 
     /**
+     * {@code GET  /comments/account/:id} : get all the comments for a given account
+     * id.
+     *
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of comments in body.
+     */
+    @GetMapping("/account/{id}")
+    public ResponseEntity<PageDTO<CommentDTO>> getCommentsByAccount(@PathVariable Long id, Pageable pageable) {
+        log.debug("REST request to get Comments of Account id : {} | Pageable {}", id, pageable);
+        if (id == null) {
+            throw new BadRequestAlertException("Account id is required to retrieve comments", ENTITY_NAME,
+                    "idAccountNull");
+        }
+        Slice<CommentDTO> page = commentRepository.findCommentsByAccountOrByAtDesc(id, pageable)
+                .map(c -> CommentDTO.from(c));
+        var newPage = new PageDTO<>(page);
+        return ResponseEntity.ok().body(newPage);
+    }
+
+    /**
      * {@code GET  /comments/post/:id} : get all the comments for a given post id.
      *
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
@@ -119,6 +139,10 @@ public class CommentResource {
     @GetMapping("/post/{id}")
     public ResponseEntity<PageDTO<CommentDTO>> getCommentsByPost(@PathVariable Long id, Pageable pageable) {
         log.debug("REST request to get Comments of Post id : {} | Pageable {}", id, pageable);
+        if (id == null) {
+            throw new BadRequestAlertException("Post id is required to retrieve comments", ENTITY_NAME,
+                    "idPostNull");
+        }
         Slice<CommentDTO> page = commentRepository.findTopLevelCommentsByPost(id, pageable)
                 .map(c -> CommentDTO.from(c));
         var newPage = new PageDTO<>(page);

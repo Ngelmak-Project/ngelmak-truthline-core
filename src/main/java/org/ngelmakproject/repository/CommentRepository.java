@@ -86,6 +86,16 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
 
 	@Query("""
 			SELECT c FROM NkComment c
+			LEFT JOIN FETCH c.post
+			LEFT JOIN FETCH c.account
+			LEFT JOIN FETCH c.file
+			WHERE c.account.id = :accountId AND c.deletedAt IS NULL
+			ORDER BY c.at DESC
+			""")
+	Slice<NkComment> findCommentsByAccountOrByAtDesc(@Param("accountId") Long accountId, Pageable pageable);
+
+	@Query("""
+			SELECT c FROM NkComment c
 			LEFT JOIN FETCH c.account
 			LEFT JOIN FETCH c.file
 			WHERE c.replyTo.id = :commentId AND c.deletedAt IS NULL
