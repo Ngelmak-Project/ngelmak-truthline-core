@@ -113,7 +113,7 @@ This way, your final image is **lightweight** (only contains JDK + compiled JAR)
 ## 🏃 Getting Started
 
 ### Prerequisites
-- Java 17+
+- Java 21+
 - Maven 3.8+
 - Postgres running locally (`localhost:5432`)
 - Vault running locally (`localhost:8200`)
