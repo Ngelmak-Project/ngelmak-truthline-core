@@ -1,6 +1,6 @@
 package org.ngelmakproject.web.rest.dto;
 
-import org.ngelmakproject.domain.NkAccount;
+import org.ngelmakproject.domain.Account;
 
 public record AccountDTO(
         Long id,
@@ -10,7 +10,7 @@ public record AccountDTO(
         String avatar,
         String banner,
         Long userId) {
-    public static AccountDTO from(NkAccount a) {
+    public static AccountDTO from(Account a) {
         if (a == null)
             return null;
         return new AccountDTO(

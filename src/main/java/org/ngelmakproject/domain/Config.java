@@ -20,12 +20,12 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 /**
- * A NkConfig.
+ * A Config.
  */
 @Entity
 @Table(name = "nk_config")
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class NkConfig implements Serializable {
+public class Config implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -48,13 +48,13 @@ public class NkConfig implements Serializable {
 
     @JsonIgnore
     @OneToOne(mappedBy = "configuration")
-    private NkAccount nkAccount;
+    private Account nkAccount;
 
     public Long getId() {
         return this.id;
     }
 
-    public NkConfig id(Long id) {
+    public Config id(Long id) {
         this.setId(id);
         return this;
     }
@@ -67,7 +67,7 @@ public class NkConfig implements Serializable {
         return this.lastUpdate;
     }
 
-    public NkConfig lastUpdate(Instant lastUpdate) {
+    public Config lastUpdate(Instant lastUpdate) {
         this.setLastUpdate(lastUpdate);
         return this;
     }
@@ -80,7 +80,7 @@ public class NkConfig implements Serializable {
         return this.defaultAccessibility;
     }
 
-    public NkConfig defaultAccessibility(Accessibility defaultAccessibility) {
+    public Config defaultAccessibility(Accessibility defaultAccessibility) {
         this.setDefaultAccessibility(defaultAccessibility);
         return this;
     }
@@ -93,7 +93,7 @@ public class NkConfig implements Serializable {
         return this.defaultVisibility;
     }
 
-    public NkConfig defaultVisibility(Visibility defaultVisibility) {
+    public Config defaultVisibility(Visibility defaultVisibility) {
         this.setDefaultVisibility(defaultVisibility);
         return this;
     }
@@ -102,11 +102,11 @@ public class NkConfig implements Serializable {
         this.defaultVisibility = defaultVisibility;
     }
 
-    public NkAccount getNkAccount() {
+    public Account getAccount() {
         return this.nkAccount;
     }
 
-    public void setNkAccount(NkAccount nkAccount) {
+    public void setAccount(Account nkAccount) {
         if (this.nkAccount != null) {
             this.nkAccount.setConfiguration(null);
         }
@@ -116,8 +116,8 @@ public class NkConfig implements Serializable {
         this.nkAccount = nkAccount;
     }
 
-    public NkConfig nkAccount(NkAccount nkAccount) {
-        this.setNkAccount(nkAccount);
+    public Config nkAccount(Account nkAccount) {
+        this.setAccount(nkAccount);
         return this;
     }
 
@@ -126,10 +126,10 @@ public class NkConfig implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof NkConfig)) {
+        if (!(o instanceof Config)) {
             return false;
         }
-        return getId() != null && getId().equals(((NkConfig) o).getId());
+        return getId() != null && getId().equals(((Config) o).getId());
     }
 
     @Override
@@ -142,7 +142,7 @@ public class NkConfig implements Serializable {
     // prettier-ignore
     @Override
     public String toString() {
-        return "NkConfig{" +
+        return "Config{" +
                 "id=" + getId() +
                 ", lastUpdate='" + getLastUpdate() + "'" +
                 ", defaultAccessibility='" + getDefaultAccessibility() + "'" +

@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.ngelmakproject.domain.NkAccount;
-import org.ngelmakproject.domain.NkFile;
-import org.ngelmakproject.domain.NkPost;
-import org.ngelmakproject.domain.NkReaction;
+import org.ngelmakproject.domain.Account;
+import org.ngelmakproject.domain.File;
+import org.ngelmakproject.domain.Post;
+import org.ngelmakproject.domain.Reaction;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.PostRepository;
@@ -38,7 +38,7 @@ import jakarta.persistence.Tuple;
 
 /**
  * Service Implementation for managing
- * {@link org.ngelmakproject.domain.NkPost}.
+ * {@link org.ngelmakproject.domain.Post}.
  */
 @Service
 @Transactional
@@ -73,20 +73,20 @@ public class PostService {
      * @return the persisted entity.
      */
     @Transactional
-    public NkPost save(NkPost post, List<MultipartFile> medias, List<MultipartFile> covers) {
+    public Post save(Post post, List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to save Post : {} | {}x file(s) and {}x cover(s)", post, medias.size(), covers.size());
         if (post.getContent().length() > 3000) {
             throw new BadRequestAlertException("Contenu trop long > 3000 caractères.", ENTITY_NAME, "contentTooLong");
         }
         return accountService.findOneByCurrentUser().map(account -> {
             /* 1. we start by saving the files if exists */
-            List<NkFile> files = fileService.save(medias, covers);
+            List<File> files = fileService.save(medias, covers);
             /* 2. then save the post with the attachments */
             // [TODO] we will need to change the default status to match with the fact that
             // some users can create posts that bypass some step validations.
             post.status(Status.VALIDATED) // default status is PENDING
                     .at(Instant.now()) // set the current time
-                    .files(new HashSet<NkFile>(files)) // attach files to the post
+                    .files(new HashSet<File>(files)) // attach files to the post
                     .account(account); // set the current connected user as owner of the post.
             return postRepository.save(post);
         }).orElseThrow(AccountNotFoundException::new);
@@ -95,12 +95,12 @@ public class PostService {
     /**
      * Update a post.
      * This function can eventually delete some files through the given
-     * deletedNkFiles variable.
+     * deletedFiles variable.
      *
      * @param post the entity to save.
      * @return the persisted entity.
      */
-    public NkPost update(NkPost post, List<NkFile> deletedMedias,
+    public Post update(Post post, List<File> deletedMedias,
             List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to update Post : {} | {}x file(s), {}x cover(s), and {}x to be deleted", post, medias.size(),
                 covers.size(), deletedMedias.size());
@@ -115,7 +115,7 @@ public class PostService {
                                     ENTITY_NAME);
                         }
                         /* 1. we start by saving the files if exists */
-                        List<NkFile> files = fileService.save(medias, covers);
+                        List<File> files = fileService.save(medias, covers);
                         /* 2. update the existing post */
                         existingPost.getFiles().addAll(files);
                         if (post.getKeywords() != null) {
@@ -156,12 +156,12 @@ public class PostService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public PageDTO<NkPost> findAll(String query, Pageable pageable) {
+    public PageDTO<Post> findAll(String query, Pageable pageable) {
         log.debug("Request to get all Posts");
         if (query.length() > 5) {
             return fullTextSearch(query, pageable);
         }
-        Slice<NkPost> page = postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
+        Slice<Post> page = postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
         return PageDTO.from(page);
     }
 
@@ -172,7 +172,7 @@ public class PostService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<NkPost> findOne(Long id) {
+    public Optional<Post> findOne(Long id) {
         log.debug("Request to get Post : {}", id);
         return postRepository.findById(id);
     }
@@ -199,13 +199,13 @@ public class PostService {
      * @return
      */
     @Transactional(readOnly = true)
-    public Slice<NkPost> getRecommendedPosts(Pageable pageable) {
+    public Slice<Post> getRecommendedPosts(Pageable pageable) {
         log.debug("Post to get recommended Post");
         return postRepository.findByStatusOrderByAtDesc(Status.VALIDATED, pageable);
     }
 
     @Transactional(readOnly = true)
-    public PageDTO<NkPost> fullTextSearch(String fullText, Pageable pageable) {
+    public PageDTO<Post> fullTextSearch(String fullText, Pageable pageable) {
         String sqlQuery = "SELECT " +
                 "  full_search.*, " +
                 "  p.id AS post_reference_id, " +
@@ -233,10 +233,10 @@ public class PostService {
         query.setParameter("limit", pageable.getPageSize());
         query.setParameter("offset", pageable.getOffset());
         List<Tuple> result = query.getResultList();
-        List<NkPost> posts = result.stream()
+        List<Post> posts = result.stream()
                 .map(t -> {
-                    NkPost post = new NkPost();
-                    var account = new NkAccount();
+                    Post post = new Post();
+                    var account = new Account();
                     account.setId(t.get("account_id", Long.class));
                     account.setName(t.get("account_name", String.class));
                     // java.time.Instant
@@ -249,13 +249,13 @@ public class PostService {
                             .status(Status.valueOf(t.get("status", String.class)))
                             .account(account)
                             .postReply(
-                                    new NkPost()
+                                    new Post()
                                             .id(t.get("post_reference_id", Long.class))
                                             .content(t.get("post_reference_content", String.class)));
                     return post;
                 })
                 .collect(Collectors.toList());
-        Page<NkPost> page = new PageImpl<>(posts, pageable, posts.size());
+        Page<Post> page = new PageImpl<>(posts, pageable, posts.size());
         return PageDTO.from(page);
     }
 
@@ -290,8 +290,8 @@ public class PostService {
      * @return
      */
     public PageDTO<PostDTO> getPostByAuthenticatedUser(Pageable pageable) {
-        NkAccount account = accountService.findOneByCurrentUser().orElseThrow(AccountNotFoundException::new);
-        List<NkPost> posts = this.postRepository.findByAccount(
+        Account account = accountService.findOneByCurrentUser().orElseThrow(AccountNotFoundException::new);
+        List<Post> posts = this.postRepository.findByAccount(
                 account.getId(),
                 pageable).getContent();
         var postDTOs = filloutReactions(posts, account.getId());
@@ -313,7 +313,7 @@ public class PostService {
      */
     public PageDTO<PostDTO> getPostByAccount(Long accountId, Pageable pageable) {
         // 1. Fetch post entries with accounts, and files
-        List<NkPost> posts = this.postRepository.findByAccountAndStatus(
+        List<Post> posts = this.postRepository.findByAccountAndStatus(
                 accountId,
                 Status.VALIDATED,
                 pageable).getContent();
@@ -335,16 +335,16 @@ public class PostService {
      * @param accountId
      * @return
      */
-    private List<PostDTO> filloutReactions(List<NkPost> posts, Long accountId) {
+    private List<PostDTO> filloutReactions(List<Post> posts, Long accountId) {
         // Extract post IDs
-        List<Long> postIds = posts.stream().map(NkPost::getId).toList();
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
         // 2. Bulk fetch reactions for all posts in the feed
-        List<NkReaction> reactions = reactionRepository.findByPostIds(postIds);
+        List<Reaction> reactions = reactionRepository.findByPostIds(postIds);
         // 3. Group reactions by postId
-        Map<Long, List<NkReaction>> reactionsByPost = ReactionService.groupReactionsByPost(reactions);
+        Map<Long, List<Reaction>> reactionsByPost = ReactionService.groupReactionsByPost(reactions);
         // 4. Map post entries to DTOs
         List<PostDTO> postDTOs = posts.stream().map(post -> {
-            List<NkReaction> postReactions = reactionsByPost.getOrDefault(post.getId(), List.of());
+            List<Reaction> postReactions = reactionsByPost.getOrDefault(post.getId(), List.of());
             ReactionSummaryDTO summary = ReactionSummaryDTO.from(postReactions, accountId);
             return PostDTO.from(post, summary);
         }).toList();

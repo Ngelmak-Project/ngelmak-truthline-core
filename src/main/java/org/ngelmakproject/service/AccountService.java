@@ -4,9 +4,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkAccount;
-import org.ngelmakproject.domain.NkConfig;
-import org.ngelmakproject.domain.NkMembership;
+import org.ngelmakproject.domain.Account;
+import org.ngelmakproject.domain.Config;
+import org.ngelmakproject.domain.Membership;
 import org.ngelmakproject.domain.enumeration.Accessibility;
 import org.ngelmakproject.domain.enumeration.Visibility;
 import org.ngelmakproject.repository.AccountRepository;
@@ -27,7 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Service Implementation for managing
- * {@link org.ngelmakproject.domain.NkAccount}.
+ * {@link org.ngelmakproject.domain.Account}.
  */
 @Service
 @Transactional
@@ -56,7 +56,7 @@ public class AccountService {
      * @param account the entity to save.
      * @return the persisted entity.
      */
-    public NkAccount save(NkAccount account) {
+    public Account save(Account account) {
         log.info("Request to save Account : {}", account);
         /* 1. account creation */
         String identifier = account.getName().toLowerCase().trim()
@@ -71,7 +71,7 @@ public class AccountService {
         account.setCreatedAt(Instant.now());
 
         /* 2. default config for the account */
-        NkConfig defaultConfig = new NkConfig();
+        Config defaultConfig = new Config();
         defaultConfig.lastUpdate(Instant.now());
         defaultConfig.defaultAccessibility(Accessibility.DEFAULT);
         defaultConfig.defaultVisibility(Visibility.PRIVATE);
@@ -86,33 +86,33 @@ public class AccountService {
      * @param account the entity to save.
      * @return the persisted entity.
      */
-    public NkAccount update(NkAccount account) {
+    public Account update(Account account) {
         log.debug("Request to update Account : {}", account);
 
-        return findOneByCurrentUser().map(existingNkAccount -> {
+        return findOneByCurrentUser().map(existingAccount -> {
             if (account.getIdentifier() != null) {
-                existingNkAccount.setIdentifier(account.getIdentifier());
+                existingAccount.setIdentifier(account.getIdentifier());
             }
             if (account.getName() != null) {
-                existingNkAccount.setName(account.getName());
+                existingAccount.setName(account.getName());
             }
             if (account.getAvatar() != null) {
-                existingNkAccount.setAvatar(account.getAvatar());
+                existingAccount.setAvatar(account.getAvatar());
             }
             if (account.getBanner() != null) {
-                existingNkAccount.setBanner(account.getBanner());
+                existingAccount.setBanner(account.getBanner());
             }
             if (account.getVisibility() != null) {
-                existingNkAccount.setVisibility(account.getVisibility());
+                existingAccount.setVisibility(account.getVisibility());
             }
             if (account.getCreatedAt() != null) {
-                existingNkAccount.setCreatedAt(account.getCreatedAt());
+                existingAccount.setCreatedAt(account.getCreatedAt());
             }
             if (account.getDescription() != null) {
-                existingNkAccount.setDescription(account.getDescription());
+                existingAccount.setDescription(account.getDescription());
             }
 
-            return existingNkAccount;
+            return existingAccount;
         }).map(accountRepository::save)
                 .orElseThrow(AccountNotFoundException::new);
     }
@@ -136,7 +136,7 @@ public class AccountService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<NkAccount> findOne(Long id) {
+    public Optional<Account> findOne(Long id) {
         log.debug("Request to get Account : {}", id);
         return accountRepository.findById(id);
     }
@@ -151,12 +151,12 @@ public class AccountService {
      * {@link ClassCastException} or {@link NullPointerException}.
      * </p>
      *
-     * @return an {@code Optional<NkAccount>} for the authenticated user, or empty
+     * @return an {@code Optional<Account>} for the authenticated user, or empty
      *         if
      *         no valid authenticated user is present.
      */
     @Transactional(readOnly = true)
-    public Optional<NkAccount> findOneByCurrentUser() {
+    public Optional<Account> findOneByCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // No authentication available
         if (authentication == null) {
@@ -195,11 +195,11 @@ public class AccountService {
      * </p>
      *
      * @param media the new avatar file to upload
-     * @return the updated {@link NkAccount}
+     * @return the updated {@link Account}
      * @throws AccountNotFoundException if the current user's account cannot be
      *                                  found
      */
-    public NkAccount updateAvatar(MultipartFile media) {
+    public Account updateAvatar(MultipartFile media) {
         return this.findOneByCurrentUser().map(
             account -> {
                     log.info("Request to update Account avatar : {}", account);
@@ -224,11 +224,11 @@ public class AccountService {
      * </p>
      *
      * @param media the new banner file to upload
-     * @return the updated {@link NkAccount}
+     * @return the updated {@link Account}
      * @throws AccountNotFoundException if the current user's account cannot be
      *                                  found
      */
-    public NkAccount updateBanner(MultipartFile media) {
+    public Account updateBanner(MultipartFile media) {
         log.debug("Request to update Account banner");
         return this.findOneByCurrentUser().map(
                 account -> {
@@ -243,13 +243,13 @@ public class AccountService {
                 }).orElseThrow(AccountNotFoundException::new);
     }
 
-    public NkAccount followUser(Long targetAccountId) {
+    public Account followUser(Long targetAccountId) {
         log.debug("Request to follow an Account");
         return this.findOneByCurrentUser().map(
                 currAccount -> {
-                    NkAccount followed = this.accountRepository.findById(targetAccountId)
+                    Account followed = this.accountRepository.findById(targetAccountId)
                             .orElseThrow(AccountNotFoundException::new);
-                    NkMembership membership = new NkMembership().follower(currAccount).following(followed)
+                    Membership membership = new Membership().follower(currAccount).following(followed)
                             .at(Instant.now());
                     membershipRepository.save(membership);
                     log.debug("A new relationship is created between {} and {}", currAccount, followed);
@@ -257,13 +257,13 @@ public class AccountService {
                 }).orElseThrow(AccountNotFoundException::new);
     }
 
-    public NkAccount unfollowUser(Long targetAccountId) {
+    public Account unfollowUser(Long targetAccountId) {
         log.debug("Request to unfollow an Account");
         return this.findOneByCurrentUser().map(
                 currAccount -> {
                     membershipRepository.findOneByFollowingAndFollower(targetAccountId, currAccount.getId())
                             .ifPresent(membership -> this.membershipRepository.delete(membership));
-                    log.debug("NkMembership is now removed.", currAccount);
+                    log.debug("Membership is now removed.", currAccount);
                     return currAccount;
                 }).orElseThrow(AccountNotFoundException::new);
     }

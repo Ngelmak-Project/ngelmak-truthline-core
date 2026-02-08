@@ -25,12 +25,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * A NkTicket.
+ * A Ticket.
  */
 @Entity
 @Table(name = "nk_ticket")
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class NkTicket implements Serializable {
+public class Ticket implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -68,32 +68,32 @@ public class NkTicket implements Serializable {
      */
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "ticket")
     @JsonIgnoreProperties(value = { "reviews", "account", "ticket", "replyto" }, allowSetters = true)
-    private Set<NkReview> reviews = new HashSet<>();
+    private Set<Review> reviews = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "attachments", "reports", "comments", "account" }, allowSetters = true)
-    private NkPost postRelated;
+    private Post postRelated;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "reports", "comments", "post", "replayto", "account" }, allowSetters = true)
-    private NkComment commentRelated;
+    private Comment commentRelated;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "configuration", "user", "reports", "owners", "comments", "memberships",
             "subscriptions", "posts", "reviews" }, allowSetters = true)
-    private NkAccount accountRelated;
+    private Account accountRelated;
 
     @ManyToOne(optional = false)
     @NotNull
     @JsonIgnoreProperties(value = { "configuration", "user", "reports", "owners", "comments", "memberships",
             "subscriptions", "posts", "reviews" }, allowSetters = true)
-    private NkAccount issuedby;
+    private Account issuedby;
 
     public Long getId() {
         return this.id;
     }
 
-    public NkTicket id(Long id) {
+    public Ticket id(Long id) {
         this.setId(id);
         return this;
     }
@@ -106,7 +106,7 @@ public class NkTicket implements Serializable {
         return this.object;
     }
 
-    public NkTicket object(String object) {
+    public Ticket object(String object) {
         this.setObject(object);
         return this;
     }
@@ -119,7 +119,7 @@ public class NkTicket implements Serializable {
         return this.type;
     }
 
-    public NkTicket type(TicketType type) {
+    public Ticket type(TicketType type) {
         this.setType(type);
         return this;
     }
@@ -132,7 +132,7 @@ public class NkTicket implements Serializable {
         return this.at;
     }
 
-    public NkTicket at(Instant at) {
+    public Ticket at(Instant at) {
         this.setAt(at);
         return this;
     }
@@ -145,7 +145,7 @@ public class NkTicket implements Serializable {
         return this.closed;
     }
 
-    public NkTicket closed(Boolean closed) {
+    public Ticket closed(Boolean closed) {
         this.setClosed(closed);
         return this;
     }
@@ -158,7 +158,7 @@ public class NkTicket implements Serializable {
         return this.content;
     }
 
-    public NkTicket content(String content) {
+    public Ticket content(String content) {
         this.setContent(content);
         return this;
     }
@@ -167,11 +167,11 @@ public class NkTicket implements Serializable {
         this.content = content;
     }
 
-    public Set<NkReview> getReviews() {
+    public Set<Review> getReviews() {
         return this.reviews;
     }
 
-    public void setReviews(Set<NkReview> reviews) {
+    public void setReviews(Set<Review> reviews) {
         if (this.reviews != null) {
             this.reviews.forEach(i -> i.setTicket(null));
         }
@@ -181,71 +181,71 @@ public class NkTicket implements Serializable {
         this.reviews = reviews;
     }
 
-    public NkTicket reviews(Set<NkReview> reviews) {
+    public Ticket reviews(Set<Review> reviews) {
         this.setReviews(reviews);
         return this;
     }
 
-    public NkTicket addReview(NkReview review) {
+    public Ticket addReview(Review review) {
         this.reviews.add(review);
         review.setTicket(this);
         return this;
     }
 
-    public NkTicket removeReview(NkReview review) {
+    public Ticket removeReview(Review review) {
         this.reviews.remove(review);
         review.setTicket(null);
         return this;
     }
 
-    public NkPost getPostRelated() {
+    public Post getPostRelated() {
         return this.postRelated;
     }
 
-    public void setPostRelated(NkPost post) {
+    public void setPostRelated(Post post) {
         this.postRelated = post;
     }
 
-    public NkTicket postRelated(NkPost post) {
+    public Ticket postRelated(Post post) {
         this.setPostRelated(post);
         return this;
     }
 
-    public NkComment getCommentRelated() {
+    public Comment getCommentRelated() {
         return this.commentRelated;
     }
 
-    public void setCommentRelated(NkComment comment) {
+    public void setCommentRelated(Comment comment) {
         this.commentRelated = comment;
     }
 
-    public NkTicket commentRelated(NkComment comment) {
+    public Ticket commentRelated(Comment comment) {
         this.setCommentRelated(comment);
         return this;
     }
 
-    public NkAccount getAccountRelated() {
+    public Account getAccountRelated() {
         return this.accountRelated;
     }
 
-    public void setAccountRelated(NkAccount nkAccount) {
+    public void setAccountRelated(Account nkAccount) {
         this.accountRelated = nkAccount;
     }
 
-    public NkTicket accountRelated(NkAccount nkAccount) {
+    public Ticket accountRelated(Account nkAccount) {
         this.setAccountRelated(nkAccount);
         return this;
     }
 
-    public NkAccount getIssuedby() {
+    public Account getIssuedby() {
         return this.issuedby;
     }
 
-    public void setIssuedby(NkAccount nkAccount) {
+    public void setIssuedby(Account nkAccount) {
         this.issuedby = nkAccount;
     }
 
-    public NkTicket issuedby(NkAccount nkAccount) {
+    public Ticket issuedby(Account nkAccount) {
         this.setIssuedby(nkAccount);
         return this;
     }
@@ -255,10 +255,10 @@ public class NkTicket implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof NkTicket)) {
+        if (!(o instanceof Ticket)) {
             return false;
         }
-        return getId() != null && getId().equals(((NkTicket) o).getId());
+        return getId() != null && getId().equals(((Ticket) o).getId());
     }
 
     @Override
@@ -269,7 +269,7 @@ public class NkTicket implements Serializable {
     // prettier-ignore
     @Override
     public String toString() {
-        return "NkTicket{" +
+        return "Ticket{" +
                 "id=" + getId() +
                 ", object='" + getObject() + "'" +
                 ", type='" + getType() + "'" +

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkConfig;
+import org.ngelmakproject.domain.Config;
 import org.ngelmakproject.repository.ConfigRepository;
 import org.ngelmakproject.service.ConfigService;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
@@ -35,7 +35,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 
 /**
- * REST controller for managing {@link org.ngelmakproject.domain.NkConfig}.
+ * REST controller for managing {@link org.ngelmakproject.domain.Config}.
  */
 @RestController
 @RequestMapping("/api/configs")
@@ -65,8 +65,8 @@ public class ConfigResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<NkConfig> createConfig(@RequestBody NkConfig config) throws URISyntaxException {
-        log.debug("REST request to save NkConfig : {}", config);
+    public ResponseEntity<Config> createConfig(@RequestBody Config config) throws URISyntaxException {
+        log.debug("REST request to save Config : {}", config);
         if (config.getId() != null) {
             throw new BadRequestAlertException("A new config cannot already have an ID", ENTITY_NAME, "idexists");
         }
@@ -87,9 +87,9 @@ public class ConfigResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<NkConfig> updateConfig(@PathVariable(value = "id", required = false) final Long id, @RequestBody NkConfig config)
+    public ResponseEntity<Config> updateConfig(@PathVariable(value = "id", required = false) final Long id, @RequestBody Config config)
         throws URISyntaxException {
-        log.debug("REST request to update NkConfig : {}, {}", id, config);
+        log.debug("REST request to update Config : {}, {}", id, config);
         if (config.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
@@ -119,11 +119,11 @@ public class ConfigResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<NkConfig> partialUpdateConfig(
+    public ResponseEntity<Config> partialUpdateConfig(
         @PathVariable(value = "id", required = false) final Long id,
-        @RequestBody NkConfig config
+        @RequestBody Config config
     ) throws URISyntaxException {
-        log.debug("REST request to partial update NkConfig partially : {}, {}", id, config);
+        log.debug("REST request to partial update Config partially : {}, {}", id, config);
         if (config.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
@@ -135,7 +135,7 @@ public class ConfigResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<NkConfig> result = configService.partialUpdate(config);
+        Optional<Config> result = configService.partialUpdate(config);
 
         return ResponseUtil.wrapOrNotFound(
             result,
@@ -151,15 +151,15 @@ public class ConfigResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of configs in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<NkConfig>> getAllConfigs(Pageable pageable,
+    public ResponseEntity<List<Config>> getAllConfigs(Pageable pageable,
         @RequestParam(name = "filter", required = false) String filter
     ) {
         if ("ngelmakaccount-is-null".equals(filter)) {
             log.debug("REST request to get all Configs where nkAccount is null");
-            return new ResponseEntity<>(configService.findAllWhereNkAccountIsNull(), HttpStatus.OK);
+            return new ResponseEntity<>(configService.findAllWhereAccountIsNull(), HttpStatus.OK);
         }
         log.debug("REST request to get a page of Configs");
-        Page<NkConfig> page = configService.findAll(pageable);
+        Page<Config> page = configService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, ServletUriComponentsBuilder.fromCurrentRequest().toString());
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -171,9 +171,9 @@ public class ConfigResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the config, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<NkConfig> getConfig(@PathVariable("id") Long id) {
-        log.debug("REST request to get NkConfig : {}", id);
-        Optional<NkConfig> config = configService.findOne(id);
+    public ResponseEntity<Config> getConfig(@PathVariable("id") Long id) {
+        log.debug("REST request to get Config : {}", id);
+        Optional<Config> config = configService.findOne(id);
         return ResponseUtil.wrapOrNotFound(config);
     }
 
@@ -185,7 +185,7 @@ public class ConfigResource {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteConfig(@PathVariable("id") Long id) {
-        log.debug("REST request to delete NkConfig : {}", id);
+        log.debug("REST request to delete Config : {}", id);
         configService.delete(id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.ngelmakproject.domain.NkFile;
+import org.ngelmakproject.domain.File;
 import org.ngelmakproject.repository.FileRepository;
 import org.ngelmakproject.repository.projection.FileProjection;
 import org.ngelmakproject.service.storage.FileStorageService;
@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Service Implementation for managing
- * {@link org.ngelmakproject.domain.NkFile}.
+ * {@link org.ngelmakproject.domain.File}.
  */
 @Service
 @Transactional
@@ -47,15 +47,15 @@ public class FileService {
      *
      * <p>
      * Computes a hash for each upload.
-     * Reuses existing NkFile entries when hashes match.
+     * Reuses existing File entries when hashes match.
      * Stores only new files on disk and persists them.
      * Increments usageCount for every returned file.
      * <\p>
      *
      * @param medias uploaded multipart files
-     * @return list of NkFile entities (existing + newly saved)
+     * @return list of File entities (existing + newly saved)
      */
-    public List<NkFile> save(List<MultipartFile> medias) {
+    public List<File> save(List<MultipartFile> medias) {
         log.debug("Request to save {}x file(s)", medias.size());
         return save(medias, Collections.nCopies(medias.size(), null));
     }
@@ -65,7 +65,7 @@ public class FileService {
      *
      * <p>
      * Computes a hash for each media and cover.
-     * Reuses existing NkFile entries when hashes match.
+     * Reuses existing File entries when hashes match.
      * Stores only new files on disk and persists them.
      * Links each media to its cover when provided.
      * Batch‑increments usageCount for all returned files.
@@ -76,26 +76,26 @@ public class FileService {
      *               null/empty entries)
      * @return list of File entities (existing + newly saved)
      */
-    public List<NkFile> save(List<MultipartFile> medias, List<MultipartFile> covers) {
+    public List<File> save(List<MultipartFile> medias, List<MultipartFile> covers) {
         log.debug("Request to save {}x file(s) and {}x cover(s)", medias.size(), covers.size());
         if (medias.isEmpty()) {
             return List.of();
         }
 
-        List<NkFile> prepared = new ArrayList<>();
+        List<File> prepared = new ArrayList<>();
         Map<String, MultipartFile> hashToMultipart = new HashMap<>();
 
         for (int i = 0; i < medias.size(); i++) {
             // MEDIA
             MultipartFile mediaPart = medias.get(i);
-            NkFile media = fromMultipartToFile(mediaPart);
+            File media = fromMultipartToFile(mediaPart);
             prepared.add(media);
             hashToMultipart.put(media.getHash(), mediaPart);
 
             // COVER (optional)
             MultipartFile coverPart = covers.get(i);
             if (coverPart != null && !coverPart.isEmpty()) {
-                NkFile cover = fromMultipartToFile(coverPart);
+                File cover = fromMultipartToFile(coverPart);
                 media.setCover(cover);
                 prepared.add(cover);
                 hashToMultipart.put(cover.getHash(), coverPart);
@@ -103,12 +103,12 @@ public class FileService {
         }
 
         // Load existing files by hash
-        Map<String, NkFile> existing = fileRepository.findByHashIn(hashToMultipart.keySet())
+        Map<String, File> existing = fileRepository.findByHashIn(hashToMultipart.keySet())
                 .stream()
-                .collect(Collectors.toMap(NkFile::getHash, f -> f));
+                .collect(Collectors.toMap(File::getHash, f -> f));
 
         // Persist only new files
-        List<NkFile> newFiles = prepared.stream()
+        List<File> newFiles = prepared.stream()
                 .filter(f -> !existing.containsKey(f.getHash()))
                 .map(f -> {
                     URL url = fileStorageService.store(hashToMultipart.get(f.getHash()), true, f.getFilename());
@@ -120,11 +120,11 @@ public class FileService {
                 .toList();
 
         // Combine new + existing
-        List<NkFile> result = new ArrayList<>(newFiles);
+        List<File> result = new ArrayList<>(newFiles);
         result.addAll(existing.values());
 
         // Batch increment usageCount
-        List<Long> ids = result.stream().map(NkFile::getId).toList();
+        List<Long> ids = result.stream().map(File::getId).toList();
         fileRepository.incrementUsageCount(ids);
 
         return result;
@@ -136,9 +136,9 @@ public class FileService {
      * 
      * @param files to delete
      */
-    public void delete(List<NkFile> files) {
+    public void delete(List<File> files) {
         log.debug("Request to delete Files : {}", files);
-        deleteByIds(files.stream().map(NkFile::getId).toList());
+        deleteByIds(files.stream().map(File::getId).toList());
     }
 
     /**
@@ -171,7 +171,7 @@ public class FileService {
      * <p>
      * Selects files with usageCount = 0.
      * Deletes the physical file from storage.
-     * Removes the corresponding NkFile rows.
+     * Removes the corresponding File rows.
      * <\p>
      */
     @Scheduled(cron = "0 0 3 * * *") // every day at 3 AM
@@ -194,16 +194,16 @@ public class FileService {
         log.debug("A total of {}x Files are deleted", unusedFiles.size());
     }
 
-    private NkFile fromMultipartToFile(MultipartFile media) {
+    private File fromMultipartToFile(MultipartFile media) {
         String name = media.getOriginalFilename();
         String ext = (name != null && name.contains(".")) ? name.substring(name.lastIndexOf('.') + 1).toLowerCase()
                 : "";
-        NkFile file = new NkFile();
+        File file = new File();
         String hash = computeHash(media);
         // Format name
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE); // yyyyMMdd
         String shortHash = hash.substring(0, 8);
-        String filename = "Nk-" + date + "-" + shortHash + "." + ext;
+        String filename = "-" + date + "-" + shortHash + "." + ext;
 
         file.setHash(hash);
         file.setFilename(filename);

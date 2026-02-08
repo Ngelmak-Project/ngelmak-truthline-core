@@ -6,8 +6,8 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkComment;
-import org.ngelmakproject.domain.NkFile;
+import org.ngelmakproject.domain.Comment;
+import org.ngelmakproject.domain.File;
 import org.ngelmakproject.repository.CommentRepository;
 import org.ngelmakproject.service.CommentService;
 import org.ngelmakproject.web.rest.dto.CommentDTO;
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * REST controller for managing {@link org.ngelmakproject.domain.NkComment}.
+ * REST controller for managing {@link org.ngelmakproject.domain.Comment}.
  */
 @RestController
 @RequestMapping("/api/comments")
@@ -65,7 +65,7 @@ public class CommentResource {
      */
     @PostMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<NkComment> createComment(@RequestPart NkComment comment,
+    public ResponseEntity<Comment> createComment(@RequestPart Comment comment,
             @RequestPart(required = false) Optional<MultipartFile> media)
             throws URISyntaxException, MalformedURLException {
         log.info("REST request to save Comment : {} + {}x media", comment, media.map(e -> 1).orElse(0));
@@ -92,9 +92,9 @@ public class CommentResource {
      */
     @PutMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<NkComment> updateComment(
-            @RequestPart NkComment comment,
-            @RequestPart(required = false) Optional<NkFile> deletedFile,
+    public ResponseEntity<Comment> updateComment(
+            @RequestPart Comment comment,
+            @RequestPart(required = false) Optional<File> deletedFile,
             @RequestPart(required = false) Optional<MultipartFile> media) throws URISyntaxException {
         log.debug("REST request to update Comment : {} + {}x media, and {}x to be deleted", comment,
                 media.map(e -> 1).orElse(0), deletedFile.map(e -> 1).orElse(0));

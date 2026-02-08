@@ -2,7 +2,7 @@ package org.ngelmakproject.service;
 
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkTicket;
+import org.ngelmakproject.domain.Ticket;
 import org.ngelmakproject.repository.TicketRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service Implementation for managing {@link org.ngelmakproject.domain.NkTicket}.
+ * Service Implementation for managing {@link org.ngelmakproject.domain.Ticket}.
  */
 @Service
 @Transactional
@@ -32,8 +32,8 @@ public class TicketService {
      * @param ticket the entity to save.
      * @return the persisted entity.
      */
-    public NkTicket save(NkTicket ticket) {
-        log.debug("Request to save NkTicket : {}", ticket);
+    public Ticket save(Ticket ticket) {
+        log.debug("Request to save Ticket : {}", ticket);
         return ticketRepository.save(ticket);
     }
 
@@ -43,8 +43,8 @@ public class TicketService {
      * @param ticket the entity to save.
      * @return the persisted entity.
      */
-    public NkTicket update(NkTicket ticket) {
-        log.debug("Request to update NkTicket : {}", ticket);
+    public Ticket update(Ticket ticket) {
+        log.debug("Request to update Ticket : {}", ticket);
         return ticketRepository.save(ticket);
     }
 
@@ -54,8 +54,8 @@ public class TicketService {
      * @param ticket the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<NkTicket> partialUpdate(NkTicket ticket) {
-        log.debug("Request to partially update NkTicket : {}", ticket);
+    public Optional<Ticket> partialUpdate(Ticket ticket) {
+        log.debug("Request to partially update Ticket : {}", ticket);
 
         return ticketRepository
             .findById(ticket.getId())
@@ -88,7 +88,7 @@ public class TicketService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<NkTicket> findAll(Pageable pageable) {
+    public Page<Ticket> findAll(Pageable pageable) {
         log.debug("Request to get all Tickets");
         return ticketRepository.findAll(pageable);
     }
@@ -100,8 +100,8 @@ public class TicketService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<NkTicket> findOne(Long id) {
-        log.debug("Request to get NkTicket : {}", id);
+    public Optional<Ticket> findOne(Long id) {
+        log.debug("Request to get Ticket : {}", id);
         return ticketRepository.findById(id);
     }
 
@@ -111,7 +111,7 @@ public class TicketService {
      * @param id the id of the entity.
      */
     public void delete(Long id) {
-        log.debug("Request to delete NkTicket : {}", id);
+        log.debug("Request to delete Ticket : {}", id);
         ticketRepository.deleteById(id);
     }
 }

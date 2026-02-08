@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.ngelmakproject.domain.NkAccount;
-import org.ngelmakproject.domain.NkFeed;
-import org.ngelmakproject.domain.NkPost;
-import org.ngelmakproject.domain.NkReaction;
+import org.ngelmakproject.domain.Account;
+import org.ngelmakproject.domain.Feed;
+import org.ngelmakproject.domain.Post;
+import org.ngelmakproject.domain.Reaction;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.ngelmakproject.repository.FeedRepository;
 import org.ngelmakproject.repository.MembershipRepository;
@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service Implementation for managing
- * {@link org.ngelmakproject.domain.NkFeed}.
+ * {@link org.ngelmakproject.domain.Feed}.
  */
 @Service
 @Transactional
@@ -65,10 +65,10 @@ public class FeedService {
      * 
      * @param post
      */
-    public void propagatePostToFollowers(NkPost post) {
-        log.debug("Propagate NkPost to get all followers.");
-        List<NkFeed> feeds = membershipRepository.findByFollowing(post.getAccount()).stream().map(membership -> {
-            NkFeed feed = new NkFeed();
+    public void propagatePostToFollowers(Post post) {
+        log.debug("Propagate Post to get all followers.");
+        List<Feed> feeds = membershipRepository.findByFollowing(post.getAccount()).stream().map(membership -> {
+            Feed feed = new Feed();
             feed.setFeedOwner(membership.getFollower());
             feed.setPost(post);
             return feed;
@@ -81,7 +81,7 @@ public class FeedService {
      * - minimal account information (via EntityGraph on the repository)
      * - attached files (also via EntityGraph)
      * - aggregated reaction summaries (emoji → count + current user reaction)
-     * - commentCount already stored on NkPost (no comment fetching required)
+     * - commentCount already stored on Post (no comment fetching required)
      *
      * <p>
      * This method avoids N+1 queries by:
@@ -96,8 +96,8 @@ public class FeedService {
      */
     public PageDTO<FeedDTO> getFeed(Pageable pageable) {
         // 1. Fetch feed entries with posts, accounts, and files
-        Optional<NkAccount> optional = accountService.findOneByCurrentUser();
-        List<NkFeed> feeds = new ArrayList<>();
+        Optional<Account> optional = accountService.findOneByCurrentUser();
+        List<Feed> feeds = new ArrayList<>();
         if (optional.isPresent()) {
             log.debug("Request to retrieve Feeds for Account {}.", optional.get());
             // Fetch feed entries with posts, accounts, and files
@@ -107,7 +107,7 @@ public class FeedService {
         feeds.addAll(this.postRepository.findByStatusOrderByAtDesc(
                 Status.VALIDATED,
                 pageable).getContent().stream().map(post -> {
-                    var feed = new NkFeed();
+                    var feed = new Feed();
                     feed.setPost(post);
                     return feed;
                 }).toList());
@@ -121,15 +121,15 @@ public class FeedService {
                 .map(f -> f.getPost().getId())
                 .toList();
         // 2. Bulk fetch reactions for all posts in the feed
-        List<NkReaction> reactions = reactionRepository.findByPostIds(postIds);
+        List<Reaction> reactions = reactionRepository.findByPostIds(postIds);
         // 3. Group reactions by postId
-        Map<Long, List<NkReaction>> reactionsByPost = ReactionService.groupReactionsByPost(reactions);
+        Map<Long, List<Reaction>> reactionsByPost = ReactionService.groupReactionsByPost(reactions);
         // 4. Map feed entries to DTOs
         List<FeedDTO> feedDTOs = feeds.stream().map(feed -> {
             var post = feed.getPost();
-            List<NkReaction> postReactions = reactionsByPost.getOrDefault(post.getId(), List.of());
+            List<Reaction> postReactions = reactionsByPost.getOrDefault(post.getId(), List.of());
             ReactionSummaryDTO summary = ReactionSummaryDTO.from(postReactions,
-                    optional.map(NkAccount::getId).orElse(null));
+                    optional.map(Account::getId).orElse(null));
             return FeedDTO.from(feed.getId(), PostDTO.from(post, summary));
         }).toList();
 

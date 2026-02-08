@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for managing {@link org.ngelmakproject.domain.NkFeed}.
+ * REST controller for managing {@link org.ngelmakproject.domain.Feed}.
  */
 @RestController
 @RequestMapping("/api/feeds")

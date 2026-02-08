@@ -1,6 +1,6 @@
 package org.ngelmakproject.service;
 
-import org.ngelmakproject.domain.NkDonation;
+import org.ngelmakproject.domain.Donation;
 import org.ngelmakproject.repository.DonationRepository;
 import org.ngelmakproject.web.rest.dto.DonationStats;
 import org.springframework.stereotype.Service;
@@ -18,12 +18,12 @@ public class DonationService {
     }
 
     @Transactional
-    public NkDonation createDonation(NkDonation request, String currentUserName, String currentUserId) {
+    public Donation createDonation(Donation request, String currentUserName, String currentUserId) {
         if (request.getAmount() == null || request.getAmount() < 0) {
             throw new IllegalArgumentException("Montant invalide");
         }
 
-        NkDonation donation = new NkDonation();
+        Donation donation = new Donation();
         donation.setAmount(request.getAmount());
         donation.setMessage(request.getMessage());
 
@@ -46,7 +46,7 @@ public class DonationService {
     }
 
     @Transactional(readOnly = true)
-    public List<NkDonation> getLastDonations() {
+    public List<Donation> getLastDonations() {
         return repository.findTop20ByOrderByCreatedAtDesc();
     }
 
@@ -54,13 +54,13 @@ public class DonationService {
     public DonationStats getStats() {
         var all = repository.findAll();
         var total = all.stream()
-                .map(NkDonation::getAmount)
+                .map(Donation::getAmount)
                 .reduce(0, (subtotal, element) -> subtotal + element);
 
         int count = all.size();
         Integer average = count == 0 ? 0 : total / count;
 
-        NkDonation last = all.stream()
+        Donation last = all.stream()
                 .max((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()))
                 .orElse(null);
 

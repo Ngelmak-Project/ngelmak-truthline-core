@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkComment;
-import org.ngelmakproject.domain.NkFile;
+import org.ngelmakproject.domain.Comment;
+import org.ngelmakproject.domain.File;
 import org.ngelmakproject.repository.CommentRepository;
 import org.ngelmakproject.repository.projection.CommentProjection;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
@@ -24,7 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Service Implementation for managing
- * {@link org.ngelmakproject.domain.NkComment}.
+ * {@link org.ngelmakproject.domain.Comment}.
  */
 @Service
 @Transactional
@@ -52,7 +52,7 @@ public class CommentService {
      * @param comment the entity to save.
      * @return the persisted entity.
      */
-    public NkComment save(NkComment comment, Optional<MultipartFile> media) {
+    public Comment save(Comment comment, Optional<MultipartFile> media) {
         log.debug("Request to save Comment : {} | {}x file", comment, media.map(e -> 1).orElse(0));
         if (comment.getContent().length() > 1000) {
             throw new BadRequestAlertException("Contenu trop long > 1000 caractères.", ENTITY_NAME, "contentTooLong");
@@ -61,7 +61,7 @@ public class CommentService {
         return accountService.findOneByCurrentUser().map(account -> {
             /* 1. we start by saving the files if exists */
             List<MultipartFile> medias = media.map(m -> Arrays.asList(m)).orElse(List.of());
-            List<NkFile> files = fileService.save(medias);
+            List<File> files = fileService.save(medias);
             /* 2. then save the Comment with the attachment */
             comment
                     .at(Instant.now()) // set the current time
@@ -88,7 +88,7 @@ public class CommentService {
      * @param comment the entity to update partially.
      * @return the persisted entity.
      */
-    public NkComment update(NkComment comment, Optional<MultipartFile> media, Optional<NkFile> deletedFile) {
+    public Comment update(Comment comment, Optional<MultipartFile> media, Optional<File> deletedFile) {
         log.debug("Request to save Comment : {} | {}x file", comment, media.map(e -> 1).orElse(0));
         if (comment.getContent().length() > 1000) {
             throw new BadRequestAlertException("Contenu trop long > 1000 caractères.", ENTITY_NAME, "contentTooLong");
@@ -108,7 +108,7 @@ public class CommentService {
                         if (media.isPresent()) {
                             /* 1. we start by saving the files if exists */
                             List<MultipartFile> medias = media.map(m -> Arrays.asList(m)).orElse(List.of());
-                            List<NkFile> files = fileService.save(medias);
+                            List<File> files = fileService.save(medias);
                             // 2. attach the file is exists.
                             if (deletedFile.isPresent()) {
                                 this.fileService.delete(Arrays.asList(deletedFile.get()));

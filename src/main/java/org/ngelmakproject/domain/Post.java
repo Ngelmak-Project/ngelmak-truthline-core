@@ -30,12 +30,12 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * The NkPost entity.
+ * The Post entity.
  */
 @Entity
 @Table(name = "nk_post")
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class NkPost implements Serializable {
+public class Post implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -73,42 +73,42 @@ public class NkPost implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIncludeProperties(value = { "id", "content" })
-    private NkPost postReply;
+    private Post postReply;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @NotNull
     @JsonIncludeProperties(value = { "id", "identifier", "name", "avatar" })
-    private NkAccount account;
+    private Account account;
 
     @ManyToMany(cascade = CascadeType.REMOVE) // [TODO] Make sure not to delete the file before checking first if it has
                                               // being used by another resource.
     @JoinTable(name = "nk_post_file", joinColumns = {
             @JoinColumn(name = "post_id", referencedColumnName = "id") }, inverseJoinColumns = {
                     @JoinColumn(name = "file_id", referencedColumnName = "id") })
-    private Set<NkFile> files = new HashSet<>();
+    private Set<File> files = new HashSet<>();
 
     /**
      * a post can be signal as going against our policies.
      */
     @OneToMany(mappedBy = "postRelated")
     @JsonIgnore
-    private Set<NkTicket> reports = new HashSet<>();
+    private Set<Ticket> reports = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "post")
     @JsonIncludeProperties(value = { "id" })
-    private Set<NkComment> comments = new HashSet<>();
+    private Set<Comment> comments = new HashSet<>();
 
     @Column(name = "comment_count")
     private Integer commentCount = 0;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<NkReaction> reactions = new HashSet<>();
+    private Set<Reaction> reactions = new HashSet<>();
 
     public Long getId() {
         return this.id;
     }
 
-    public NkPost id(Long id) {
+    public Post id(Long id) {
         this.setId(id);
         return this;
     }
@@ -121,7 +121,7 @@ public class NkPost implements Serializable {
         return this.keywords;
     }
 
-    public NkPost keywords(String keywords) {
+    public Post keywords(String keywords) {
         this.setKeywords(keywords);
         return this;
     }
@@ -134,7 +134,7 @@ public class NkPost implements Serializable {
         return this.at;
     }
 
-    public NkPost at(Instant at) {
+    public Post at(Instant at) {
         this.setAt(at);
         return this;
     }
@@ -147,7 +147,7 @@ public class NkPost implements Serializable {
         return this.deletedAt;
     }
 
-    public NkPost deletedAt(Instant deletedAt) {
+    public Post deletedAt(Instant deletedAt) {
         this.setDeletedAt(deletedAt);
         return this;
     }
@@ -160,7 +160,7 @@ public class NkPost implements Serializable {
         return this.lastUpdate;
     }
 
-    public NkPost lastUpdate(Instant lastUpdate) {
+    public Post lastUpdate(Instant lastUpdate) {
         this.setLastUpdate(lastUpdate);
         return this;
     }
@@ -173,7 +173,7 @@ public class NkPost implements Serializable {
         return this.visibility;
     }
 
-    public NkPost visibility(Visibility visibility) {
+    public Post visibility(Visibility visibility) {
         this.setVisibility(visibility);
         return this;
     }
@@ -186,7 +186,7 @@ public class NkPost implements Serializable {
         return this.content;
     }
 
-    public NkPost content(String content) {
+    public Post content(String content) {
         this.setContent(content);
         return this;
     }
@@ -199,7 +199,7 @@ public class NkPost implements Serializable {
         return this.status;
     }
 
-    public NkPost status(Status status) {
+    public Post status(Status status) {
         this.setStatus(status);
         return this;
     }
@@ -208,24 +208,24 @@ public class NkPost implements Serializable {
         this.status = status;
     }
 
-    public Set<NkFile> getFiles() {
+    public Set<File> getFiles() {
         return this.files;
     }
 
-    public void setFiles(Set<NkFile> files) {
+    public void setFiles(Set<File> files) {
         this.files = files;
     }
 
-    public NkPost files(Set<NkFile> files) {
+    public Post files(Set<File> files) {
         this.setFiles(files);
         return this;
     }
 
-    public Set<NkTicket> getReports() {
+    public Set<Ticket> getReports() {
         return this.reports;
     }
 
-    public void setReports(Set<NkTicket> tickets) {
+    public void setReports(Set<Ticket> tickets) {
         if (this.reports != null) {
             this.reports.forEach(i -> i.setPostRelated(null));
         }
@@ -235,28 +235,28 @@ public class NkPost implements Serializable {
         this.reports = tickets;
     }
 
-    public NkPost reports(Set<NkTicket> tickets) {
+    public Post reports(Set<Ticket> tickets) {
         this.setReports(tickets);
         return this;
     }
 
-    public NkPost addReports(NkTicket ticket) {
+    public Post addReports(Ticket ticket) {
         this.reports.add(ticket);
         ticket.setPostRelated(this);
         return this;
     }
 
-    public NkPost removeReports(NkTicket ticket) {
+    public Post removeReports(Ticket ticket) {
         this.reports.remove(ticket);
         ticket.setPostRelated(null);
         return this;
     }
 
-    public Set<NkComment> getComments() {
+    public Set<Comment> getComments() {
         return this.comments;
     }
 
-    public void setComments(Set<NkComment> comments) {
+    public void setComments(Set<Comment> comments) {
         if (this.comments != null) {
             this.comments.forEach(i -> i.setPost(null));
         }
@@ -266,18 +266,18 @@ public class NkPost implements Serializable {
         this.comments = comments;
     }
 
-    public NkPost comments(Set<NkComment> comments) {
+    public Post comments(Set<Comment> comments) {
         this.setComments(comments);
         return this;
     }
 
-    public NkPost addComment(NkComment comment) {
+    public Post addComment(Comment comment) {
         this.comments.add(comment);
         comment.setPost(this);
         return this;
     }
 
-    public NkPost removeComment(NkComment comment) {
+    public Post removeComment(Comment comment) {
         this.comments.remove(comment);
         comment.setPost(null);
         return this;
@@ -287,7 +287,7 @@ public class NkPost implements Serializable {
         return this.commentCount;
     }
 
-    public NkPost commentCount(Integer commentCount) {
+    public Post commentCount(Integer commentCount) {
         this.setCommentCount(commentCount);
         return this;
     }
@@ -296,28 +296,28 @@ public class NkPost implements Serializable {
         this.commentCount = commentCount;
     }
 
-    public NkPost getPostReply() {
+    public Post getPostReply() {
         return this.postReply;
     }
 
-    public void setPostReply(NkPost postReply) {
+    public void setPostReply(Post postReply) {
         this.postReply = postReply;
     }
 
-    public NkPost postReply(NkPost postReply) {
+    public Post postReply(Post postReply) {
         this.setPostReply(postReply);
         return this;
     }
 
-    public NkAccount getAccount() {
+    public Account getAccount() {
         return this.account;
     }
 
-    public void setAccount(NkAccount nkAccount) {
+    public void setAccount(Account nkAccount) {
         this.account = nkAccount;
     }
 
-    public NkPost account(NkAccount nkAccount) {
+    public Post account(Account nkAccount) {
         this.setAccount(nkAccount);
         return this;
     }
@@ -327,10 +327,10 @@ public class NkPost implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof NkPost)) {
+        if (!(o instanceof Post)) {
             return false;
         }
-        return getId() != null && getId().equals(((NkPost) o).getId());
+        return getId() != null && getId().equals(((Post) o).getId());
     }
 
     @Override
@@ -343,7 +343,7 @@ public class NkPost implements Serializable {
     // prettier-ignore
     @Override
     public String toString() {
-        return "NkPost{" +
+        return "Post{" +
                 "id=" + getId() +
                 ", keywords='" + getKeywords() + "'" +
                 ", at='" + getAt() + "'" +

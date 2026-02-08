@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import org.ngelmakproject.domain.NkFile;
-import org.ngelmakproject.domain.NkPost;
+import org.ngelmakproject.domain.File;
+import org.ngelmakproject.domain.Post;
 import org.ngelmakproject.service.PostService;
 import org.ngelmakproject.web.rest.dto.PageDTO;
 import org.ngelmakproject.web.rest.dto.PostDTO;
@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * REST controller for managing {@link org.ngelmakproject.domain.NkPost}.
+ * REST controller for managing {@link org.ngelmakproject.domain.Post}.
  */
 @RestController
 @RequestMapping("/api/posts")
@@ -64,7 +64,7 @@ public class PostResource {
      */
     @PostMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<NkPost> createPost(@RequestPart NkPost post,
+    public ResponseEntity<Post> createPost(@RequestPart Post post,
             @RequestPart(required = false) Optional<List<MultipartFile>> _medias,
             @RequestPart(required = false) Optional<List<MultipartFile>> _covers)
             throws URISyntaxException {
@@ -96,13 +96,13 @@ public class PostResource {
      */
     @PutMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<NkPost> updatePost(
-            @RequestPart NkPost post,
-            @RequestPart(required = false) Optional<List<NkFile>> _deletedFiles,
+    public ResponseEntity<Post> updatePost(
+            @RequestPart Post post,
+            @RequestPart(required = false) Optional<List<File>> _deletedFiles,
             @RequestPart(required = false) Optional<List<MultipartFile>> _medias,
             @RequestPart(required = false) Optional<List<MultipartFile>> _covers)
             throws URISyntaxException, IOException {
-        List<NkFile> deletedFiles = _deletedFiles.orElse(List.of());
+        List<File> deletedFiles = _deletedFiles.orElse(List.of());
         List<MultipartFile> medias = _medias.orElse(List.of());
         List<MultipartFile> covers = _covers.orElse(List.of());
         log.info("REST request to save Post : {} | {}x media(s), {}x cover(s), and {}x to be deleted", post,
@@ -125,7 +125,7 @@ public class PostResource {
      *         of posts in body.
      */
     @GetMapping("")
-    public ResponseEntity<PageDTO<NkPost>> getAllPosts(@RequestParam(value = "q", defaultValue = "") String query,
+    public ResponseEntity<PageDTO<Post>> getAllPosts(@RequestParam(value = "q", defaultValue = "") String query,
             Pageable pageable) {
         log.debug("REST request to get a page of Posts : {}", query);
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
@@ -172,7 +172,7 @@ public class PostResource {
     // * of posts in body.
     // */
     // @GetMapping("/search")
-    // public ResponseEntity<PageDTO<NkPost>> fullTextSearch(@RequestParam("q")
+    // public ResponseEntity<PageDTO<Post>> fullTextSearch(@RequestParam("q")
     // String
     // query,
     // Pageable pageable) {
@@ -190,9 +190,9 @@ public class PostResource {
      *         the post, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<NkPost> getPost(@PathVariable Long id) {
+    public ResponseEntity<Post> getPost(@PathVariable Long id) {
         log.debug("REST request to get Post : {}", id);
-        Optional<NkPost> post = postService.findOne(id);
+        Optional<Post> post = postService.findOne(id);
         return ResponseUtil.wrapOrNotFound(post);
     }
 

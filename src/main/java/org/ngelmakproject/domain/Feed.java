@@ -17,14 +17,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * findByFeedOwner The NkFeed entity.
+ * findByFeedOwner The Feed entity.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "nk_feed")
-public class NkFeed implements Serializable {
+public class Feed implements Serializable {
 
     private static final long serialVersionUID = 1L;
     
@@ -36,11 +36,11 @@ public class NkFeed implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "post_id")
-    private NkPost post;
+    private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "feed_owner_id")
-    private NkAccount feedOwner;
+    private Account feedOwner;
 
     public Long getId() {
         return id;
@@ -50,19 +50,19 @@ public class NkFeed implements Serializable {
         this.id = id;
     }
 
-    public NkPost getPost() {
+    public Post getPost() {
         return post;
     }
 
-    public void setPost(NkPost post) {
+    public void setPost(Post post) {
         this.post = post;
     }
 
-    public NkAccount getFeedOwner() {
+    public Account getFeedOwner() {
         return feedOwner;
     }
 
-    public void setFeedOwner(NkAccount feedOwner) {
+    public void setFeedOwner(Account feedOwner) {
         this.feedOwner = feedOwner;
     }
 

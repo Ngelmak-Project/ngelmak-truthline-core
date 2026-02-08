@@ -4,8 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkComment;
-import org.ngelmakproject.domain.NkPost;
+import org.ngelmakproject.domain.Comment;
+import org.ngelmakproject.domain.Post;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.ngelmakproject.repository.projection.CommentProjection;
 import org.springframework.data.domain.Page;
@@ -19,24 +19,24 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for the NkComment entity.
+ * Spring Data JPA repository for the Comment entity.
  */
 @SuppressWarnings("unused")
 @Repository
-public interface CommentRepository extends JpaRepository<NkComment, Long> {
+public interface CommentRepository extends JpaRepository<Comment, Long> {
 	// @Query("""
-	// SELECT c FROM NkComment c
+	// SELECT c FROM Comment c
 	// LEFT JOIN FETCH c.account
 	// LEFT JOIN FETCH c.file
 	// WHERE c.post.id = :id
 	// AND c.deletedAt IS NULL
 	// ORDER BY c.at
 	// """)
-	// Slice<NkComment> findByPostOrderByAt(@Param("id") Long id, Pageable
+	// Slice<Comment> findByPostOrderByAt(@Param("id") Long id, Pageable
 	// pageable);
 
 	// @Query("""
-	// select new NkComment(
+	// select new Comment(
 	// c.id,
 	// c.opinion,
 	// c.at,
@@ -48,13 +48,13 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
 	// c.replayto,
 	// c.account
 	// )
-	// from NkComment c
+	// from Comment c
 	// where c.id = :id
 	// """)
-	// Optional<NkComment> findById(@Param("id") Long id);
+	// Optional<Comment> findById(@Param("id") Long id);
 
 	// @Modifying
-	// @Query("update NkComment c set c.content = :content and c.url = :url where
+	// @Query("update Comment c set c.content = :content and c.url = :url where
 	// u.id < :id")
 	// void update(@Param("id") Long id, @Param("content") String content,
 	// @Param("url") String url);
@@ -72,82 +72,82 @@ public interface CommentRepository extends JpaRepository<NkComment, Long> {
 			WHERE p.id IN :postIds
 			ORDER BY p.id, c.at DESC
 			""", nativeQuery = true)
-	List<NkComment> findTopCommentsForPosts(@Param("postIds") List<Long> postIds, @Param("limit") Integer limit);
+	List<Comment> findTopCommentsForPosts(@Param("postIds") List<Long> postIds, @Param("limit") Integer limit);
 
 	@Query("""
-			SELECT c FROM NkComment c
+			SELECT c FROM Comment c
 			LEFT JOIN FETCH c.post
 			LEFT JOIN FETCH c.account
 			LEFT JOIN FETCH c.file
 			WHERE c.post.id = :postId AND c.replyTo IS NULL AND c.deletedAt IS NULL
 			ORDER BY c.at DESC
 			""")
-	Slice<NkComment> findTopLevelCommentsByPost(@Param("postId") Long postId, Pageable pageable);
+	Slice<Comment> findTopLevelCommentsByPost(@Param("postId") Long postId, Pageable pageable);
 
 	@Query("""
-			SELECT c FROM NkComment c
+			SELECT c FROM Comment c
 			LEFT JOIN FETCH c.post
 			LEFT JOIN FETCH c.account
 			LEFT JOIN FETCH c.file
 			WHERE c.account.id = :accountId AND c.deletedAt IS NULL
 			ORDER BY c.at DESC
 			""")
-	Slice<NkComment> findCommentsByAccountOrByAtDesc(@Param("accountId") Long accountId, Pageable pageable);
+	Slice<Comment> findCommentsByAccountOrByAtDesc(@Param("accountId") Long accountId, Pageable pageable);
 
 	@Query("""
-			SELECT c FROM NkComment c
+			SELECT c FROM Comment c
 			LEFT JOIN FETCH c.account
 			LEFT JOIN FETCH c.file
 			WHERE c.replyTo.id = :commentId AND c.deletedAt IS NULL
 			ORDER BY c.at ASC
 			""")
-	List<NkComment> findRepliesByComment(@Param("commentId") Long commentId);
+	List<Comment> findRepliesByComment(@Param("commentId") Long commentId);
 
 	@Modifying
 	@Query("""
-			UPDATE NkComment c
-			SET c.replyCount = (SELECT COUNT(c.id) FROM NkComment c2
+			UPDATE Comment c
+			SET c.replyCount = (SELECT COUNT(c.id) FROM Comment c2
 			WHERE c2.replyTo.id = c.id)
 			""")
 	void updateAllReplyCounts();
 
 	@Modifying
 	@Query("""
-			  UPDATE NkComment c
-			  SET c.replyCount=(SELECT COUNT(c.id) FROM NkComment c2
+			  UPDATE Comment c
+			  SET c.replyCount=(SELECT COUNT(c.id) FROM Comment c2
 			  WHERE c2.replyTo.id = :commentId)
 			""")
 	void updateReplyCount(@Param("commentId") Long commentId);
 
 	@Modifying
 	@Query("""
-			UPDATE NkComment c
+			UPDATE Comment c
 			SET c.replyCount = GREATEST(0, c.replyCount + :countChange)
 			WHERE c.id = :commentId
 			""")
 	void updateReplyCount(@Param("commentId") Long commentId, @Param("countChange") Integer countChange);
 
 	@Modifying
-	@Query("UPDATE NkComment c SET c.deletedAt = :ts WHERE c.id = :id")
+	@Query("UPDATE Comment c SET c.deletedAt = :ts WHERE c.id = :id")
 	int softDeleteById(@Param("id") Long id, @Param("ts") Instant ts);
 
 	@Modifying
 	@Query("""
-			    UPDATE NkComment c
+			    UPDATE Comment c
 			    SET c.deletedAt = :ts
 			    WHERE c.id = :id AND c.account.id = :accountId
 			""")
 	int softDeleteByIdAndAccount(@Param("id") Long id, @Param("accountId") Long accountId, @Param("ts") Instant ts);
 
 	@Modifying
-	@Query("DELETE FROM NkComment c WHERE c.deletedAt < :cutoff")
+	@Query("DELETE FROM Comment c WHERE c.deletedAt < :cutoff")
 	int deleteExpiredComments(Instant cutoff);
 
-	@Query("SELECT c FROM NkComment c WHERE c.deletedAt < :cutoff")
+	@Query("SELECT c FROM Comment c WHERE c.deletedAt < :cutoff")
 	List<CommentProjection> findExpiredComments(Instant cutoff);
 
 	@EntityGraph(attributePaths = { "post", "replyTo" })
-	Optional<NkComment> findWithPostAndReplyToById(Long id);
+	Optional<Comment> findWithPostAndReplyToById(Long id);
 
 	Optional<CommentProjection> findProjectedById(Long id);
 

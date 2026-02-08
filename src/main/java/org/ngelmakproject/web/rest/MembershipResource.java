@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkMembership;
+import org.ngelmakproject.domain.Membership;
 import org.ngelmakproject.repository.MembershipRepository;
 import org.ngelmakproject.service.MembershipService;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
@@ -35,7 +35,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * REST controller for managing {@link org.ngelmakproject.domain.NkMembership}.
+ * REST controller for managing {@link org.ngelmakproject.domain.Membership}.
  */
 @RestController
 @RequestMapping("/api/memberships")
@@ -65,8 +65,8 @@ public class MembershipResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<NkMembership> createMembership(@Valid @RequestBody NkMembership membership) throws URISyntaxException {
-        log.debug("REST request to save NkMembership : {}", membership);
+    public ResponseEntity<Membership> createMembership(@Valid @RequestBody Membership membership) throws URISyntaxException {
+        log.debug("REST request to save Membership : {}", membership);
         if (membership.getId() != null) {
             throw new BadRequestAlertException("A new membership cannot already have an ID", ENTITY_NAME, "idexists");
         }
@@ -87,11 +87,11 @@ public class MembershipResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<NkMembership> updateMembership(
+    public ResponseEntity<Membership> updateMembership(
         @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody NkMembership membership
+        @Valid @RequestBody Membership membership
     ) throws URISyntaxException {
-        log.debug("REST request to update NkMembership : {}, {}", id, membership);
+        log.debug("REST request to update Membership : {}, {}", id, membership);
         if (membership.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
@@ -121,11 +121,11 @@ public class MembershipResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<NkMembership> partialUpdateMembership(
+    public ResponseEntity<Membership> partialUpdateMembership(
         @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody NkMembership membership
+        @NotNull @RequestBody Membership membership
     ) throws URISyntaxException {
-        log.debug("REST request to partial update NkMembership partially : {}, {}", id, membership);
+        log.debug("REST request to partial update Membership partially : {}, {}", id, membership);
         if (membership.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
@@ -137,7 +137,7 @@ public class MembershipResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<NkMembership> result = membershipService.partialUpdate(membership);
+        Optional<Membership> result = membershipService.partialUpdate(membership);
 
         return ResponseUtil.wrapOrNotFound(
             result,
@@ -152,9 +152,9 @@ public class MembershipResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of memberships in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<NkMembership>> getAllMemberships(Pageable pageable) {
+    public ResponseEntity<List<Membership>> getAllMemberships(Pageable pageable) {
         log.debug("REST request to get a page of Memberships");
-        Page<NkMembership> page = membershipService.findAll(pageable);
+        Page<Membership> page = membershipService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, ServletUriComponentsBuilder.fromCurrentRequest().toString());
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -166,9 +166,9 @@ public class MembershipResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the membership, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<NkMembership> getMembership(@PathVariable("id") Long id) {
-        log.debug("REST request to get NkMembership : {}", id);
-        Optional<NkMembership> membership = membershipService.findOne(id);
+    public ResponseEntity<Membership> getMembership(@PathVariable("id") Long id) {
+        log.debug("REST request to get Membership : {}", id);
+        Optional<Membership> membership = membershipService.findOne(id);
         return ResponseUtil.wrapOrNotFound(membership);
     }
 
@@ -180,7 +180,7 @@ public class MembershipResource {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMembership(@PathVariable("id") Long id) {
-        log.debug("REST request to delete NkMembership : {}", id);
+        log.debug("REST request to delete Membership : {}", id);
         membershipService.delete(id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, ENTITY_NAME, id.toString()))

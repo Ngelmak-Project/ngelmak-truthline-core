@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ngelmakproject.domain.NkReaction;
+import org.ngelmakproject.domain.Reaction;
 import org.ngelmakproject.repository.ReactionRepository;
 import org.ngelmakproject.web.rest.errors.AccountNotFoundException;
 import org.ngelmakproject.web.rest.errors.ResourceNotFoundException;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service Implementation for managing
- * {@link org.ngelmakproject.domain.NkReaction}.
+ * {@link org.ngelmakproject.domain.Reaction}.
  */
 @Service
 @Transactional
@@ -48,7 +48,7 @@ public class ReactionService {
      * @return the persisted entity.
      */
     @Transactional
-    public NkReaction save(NkReaction reaction) {
+    public Reaction save(Reaction reaction) {
         log.debug("Request to save Reaction : {}", reaction);
         return accountService.findOneByCurrentUser().map(account -> {
             // [TODO] Only save on redis database and not on the persistent database for
@@ -61,12 +61,12 @@ public class ReactionService {
     /**
      * Update a reaction.
      * This function can eventually delete some files through the given
-     * deletedNkFiles variable.
+     * deletedFiles variable.
      *
      * @param reaction the entity to save.
      * @return the persisted entity.
      */
-    public NkReaction update(NkReaction reaction) {
+    public Reaction update(Reaction reaction) {
         log.debug("Request to update Reaction : {}", reaction);
         return accountService.findOneByCurrentUser().map(account -> {
             return reactionRepository.findById(reaction.getId())
@@ -106,10 +106,10 @@ public class ReactionService {
      * @param reactions flat list of reactions for many posts
      * @return map: postId → list of reactions
      */
-    public static Map<Long, List<NkReaction>> groupReactionsByPost(List<NkReaction> reactions) {
-        Map<Long, List<NkReaction>> map = new HashMap<>();
+    public static Map<Long, List<Reaction>> groupReactionsByPost(List<Reaction> reactions) {
+        Map<Long, List<Reaction>> map = new HashMap<>();
 
-        for (NkReaction reaction : reactions) {
+        for (Reaction reaction : reactions) {
             Long postId = reaction.getPost().getId();
             map.computeIfAbsent(postId, id -> new ArrayList<>()).add(reaction);
         }

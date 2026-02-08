@@ -2,7 +2,7 @@ package org.ngelmakproject.service;
 
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkMembership;
+import org.ngelmakproject.domain.Membership;
 import org.ngelmakproject.repository.MembershipRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service Implementation for managing {@link org.ngelmakproject.domain.NkMembership}.
+ * Service Implementation for managing {@link org.ngelmakproject.domain.Membership}.
  */
 @Service
 @Transactional
@@ -32,8 +32,8 @@ public class MembershipService {
      * @param membership the entity to save.
      * @return the persisted entity.
      */
-    public NkMembership save(NkMembership membership) {
-        log.debug("Request to save NkMembership : {}", membership);
+    public Membership save(Membership membership) {
+        log.debug("Request to save Membership : {}", membership);
         return membershipRepository.save(membership);
     }
 
@@ -43,8 +43,8 @@ public class MembershipService {
      * @param membership the entity to save.
      * @return the persisted entity.
      */
-    public NkMembership update(NkMembership membership) {
-        log.debug("Request to update NkMembership : {}", membership);
+    public Membership update(Membership membership) {
+        log.debug("Request to update Membership : {}", membership);
         return membershipRepository.save(membership);
     }
 
@@ -54,8 +54,8 @@ public class MembershipService {
      * @param membership the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<NkMembership> partialUpdate(NkMembership membership) {
-        log.debug("Request to partially update NkMembership : {}", membership);
+    public Optional<Membership> partialUpdate(Membership membership) {
+        log.debug("Request to partially update Membership : {}", membership);
 
         return membershipRepository
             .findById(membership.getId())
@@ -79,7 +79,7 @@ public class MembershipService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<NkMembership> findAll(Pageable pageable) {
+    public Page<Membership> findAll(Pageable pageable) {
         log.debug("Request to get all Memberships");
         return membershipRepository.findAll(pageable);
     }
@@ -91,8 +91,8 @@ public class MembershipService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<NkMembership> findOne(Long id) {
-        log.debug("Request to get NkMembership : {}", id);
+    public Optional<Membership> findOne(Long id) {
+        log.debug("Request to get Membership : {}", id);
         return membershipRepository.findById(id);
     }
 
@@ -102,7 +102,7 @@ public class MembershipService {
      * @param id the id of the entity.
      */
     public void delete(Long id) {
-        log.debug("Request to delete NkMembership : {}", id);
+        log.debug("Request to delete Membership : {}", id);
         membershipRepository.deleteById(id);
     }
 }

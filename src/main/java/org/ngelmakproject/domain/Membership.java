@@ -16,12 +16,12 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * A NkMembership.
+ * A Membership.
  */
 @Entity
 @Table(name = "nk_membership")
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class NkMembership implements Serializable {
+public class Membership implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -41,19 +41,19 @@ public class NkMembership implements Serializable {
     @NotNull
     @JsonIgnoreProperties(value = { "configuration", "user", "reports", "owners", "comments", "memberships",
             "subscriptions", "posts", "reviews" }, allowSetters = true)
-    private NkAccount following;
+    private Account following;
 
     @ManyToOne(optional = false)
     @NotNull
     @JsonIgnoreProperties(value = { "configuration", "user", "reports", "owners", "comments", "memberships",
             "subscriptions", "posts", "reviews" }, allowSetters = true)
-    private NkAccount follower; // The owner of the membership
+    private Account follower; // The owner of the membership
 
     public Long getId() {
         return this.id;
     }
 
-    public NkMembership id(Long id) {
+    public Membership id(Long id) {
         this.setId(id);
         return this;
     }
@@ -66,7 +66,7 @@ public class NkMembership implements Serializable {
         return this.at;
     }
 
-    public NkMembership at(Instant at) {
+    public Membership at(Instant at) {
         this.setAt(at);
         return this;
     }
@@ -79,7 +79,7 @@ public class NkMembership implements Serializable {
         return this.activateNotification;
     }
 
-    public NkMembership activateNotification(Boolean activateNotification) {
+    public Membership activateNotification(Boolean activateNotification) {
         this.setActivateNotification(activateNotification);
         return this;
     }
@@ -88,28 +88,28 @@ public class NkMembership implements Serializable {
         this.activateNotification = activateNotification;
     }
 
-    public NkAccount getFollower() {
+    public Account getFollower() {
         return this.follower;
     }
 
-    public void setFollower(NkAccount nkAccount) {
+    public void setFollower(Account nkAccount) {
         this.follower = nkAccount;
     }
 
-    public NkMembership follower(NkAccount nkAccount) {
+    public Membership follower(Account nkAccount) {
         this.setFollower(nkAccount);
         return this;
     }
 
-    public NkAccount getFollowing() {
+    public Account getFollowing() {
         return this.following;
     }
 
-    public void setFollowing(NkAccount nkAccount) {
+    public void setFollowing(Account nkAccount) {
         this.following = nkAccount;
     }
 
-    public NkMembership following(NkAccount nkAccount) {
+    public Membership following(Account nkAccount) {
         this.setFollowing(nkAccount);
         return this;
     }
@@ -119,10 +119,10 @@ public class NkMembership implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof NkMembership)) {
+        if (!(o instanceof Membership)) {
             return false;
         }
-        return getId() != null && getId().equals(((NkMembership) o).getId());
+        return getId() != null && getId().equals(((Membership) o).getId());
     }
 
     @Override
@@ -133,7 +133,7 @@ public class NkMembership implements Serializable {
     // prettier-ignore
     @Override
     public String toString() {
-        return "NkMembership{" +
+        return "Membership{" +
                 "id=" + getId() +
                 ", at='" + getAt() + "'" +
                 ", activateNotification='" + getActivateNotification() + "'" +

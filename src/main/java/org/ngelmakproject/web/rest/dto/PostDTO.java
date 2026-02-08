@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.ngelmakproject.domain.NkPost;
+import org.ngelmakproject.domain.Post;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.ngelmakproject.domain.enumeration.Visibility;
 
@@ -20,7 +20,7 @@ public record PostDTO(
         ReactionSummaryDTO reactions,
         int commentCount,
         Long replyToId) {
-    public static PostDTO from(NkPost p, ReactionSummaryDTO reactions) {
+    public static PostDTO from(Post p, ReactionSummaryDTO reactions) {
         if (p == null)
             return null;
         return new PostDTO(

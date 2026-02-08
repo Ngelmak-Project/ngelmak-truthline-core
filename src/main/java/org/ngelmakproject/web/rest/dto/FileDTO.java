@@ -1,6 +1,6 @@
 package org.ngelmakproject.web.rest.dto;
 
-import org.ngelmakproject.domain.NkFile;
+import org.ngelmakproject.domain.File;
 
 public record FileDTO(
         Long id,
@@ -9,7 +9,7 @@ public record FileDTO(
         String type,
         String filename,
         Integer duration) {
-    public static FileDTO from(NkFile f) {
+    public static FileDTO from(File f) {
         if (f == null)
             return null;
         return new FileDTO(

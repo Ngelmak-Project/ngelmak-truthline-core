@@ -3,7 +3,7 @@ package org.ngelmakproject.web.rest;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkAccount;
+import org.ngelmakproject.domain.Account;
 import org.ngelmakproject.security.UserPrincipal;
 import org.ngelmakproject.service.AccountService;
 import org.ngelmakproject.web.rest.dto.AccountDTO;
@@ -36,7 +36,7 @@ import jakarta.validation.Valid;
 
 /**
  * REST controller for managing
- * {@link org.ngelmakproject.domain.NkAccount}.
+ * {@link org.ngelmakproject.domain.Account}.
  */
 @RestController
 @RequestMapping("/api/accounts")
@@ -73,7 +73,7 @@ public class AccountResource {
     @PostMapping("")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AccountDTO> createAccount(Authentication authentication,
-            @Valid @RequestBody NkAccount account) {
+            @Valid @RequestBody Account account) {
         log.debug("REST request to save Account : {}", account);
         if (account.getId() != null) {
             throw new BadRequestAlertException("A new account cannot already have an ID", ENTITY_NAME, "idexists");
@@ -105,7 +105,7 @@ public class AccountResource {
      */
     @PutMapping("")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<AccountDTO> updateAccount(@Valid @RequestBody NkAccount account) {
+    public ResponseEntity<AccountDTO> updateAccount(@Valid @RequestBody Account account) {
         log.debug("REST request to update Account : {}", account);
         if (account.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -127,7 +127,7 @@ public class AccountResource {
     @GetMapping("")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<PageDTO<AccountDTO>> getAllAccounts(Pageable pageable) {
-        log.debug("REST request to get a page of NkAccounts");
+        log.debug("REST request to get a page of Accounts");
         return ResponseEntity.ok().body(PageDTO.from(accountService.findAll(pageable)));
     }
 
@@ -140,11 +140,11 @@ public class AccountResource {
      */
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<NkAccount> personalAccount(Authentication authentication) {
+    public ResponseEntity<Account> personalAccount(Authentication authentication) {
         log.info("REST request to get connected Account");
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
         log.info("​🦋 User details {}", principal);
-        Optional<NkAccount> account = accountService.findOneByCurrentUser();
+        Optional<Account> account = accountService.findOneByCurrentUser();
         return ResponseUtil.wrapOrNotFound(account);
     }
 
@@ -156,9 +156,9 @@ public class AccountResource {
      *         the account, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<NkAccount> getAccount(@PathVariable("id") Long id) {
+    public ResponseEntity<Account> getAccount(@PathVariable("id") Long id) {
         log.debug("REST request to get Account : {}", id);
-        Optional<NkAccount> account = accountService.findOne(id);
+        Optional<Account> account = accountService.findOne(id);
         return ResponseUtil.wrapOrNotFound(account);
     }
 

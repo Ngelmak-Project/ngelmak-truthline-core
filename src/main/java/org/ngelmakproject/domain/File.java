@@ -18,11 +18,11 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * A NkFile.
+ * A File.
  */
 @Entity
 @Table(name = "nk_file")
-public class NkFile implements Serializable {
+public class File implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -62,7 +62,7 @@ public class NkFile implements Serializable {
 
     @ManyToOne(optional = true, cascade = CascadeType.PERSIST)
     @JsonIncludeProperties(value = { "id" })
-    private NkFile cover;
+    private File cover;
 
     public static long getSerialversionuid() {
         return serialVersionUID;
@@ -140,18 +140,18 @@ public class NkFile implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public NkFile getCover() {
+    public File getCover() {
         return cover;
     }
 
-    public void setCover(NkFile cover) {
+    public void setCover(File cover) {
         this.cover = cover;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("NkFile{");
+        sb.append("File{");
         sb.append("id=").append(id);
         sb.append(", filename=").append(filename);
         sb.append(", size=").append(size);

@@ -31,7 +31,7 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 @Table(name = "nk_account")
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class NkAccount implements Serializable {
+public class Account implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -90,25 +90,25 @@ public class NkAccount implements Serializable {
      */
     @OneToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(unique = true)
-    private NkConfig configuration;
+    private Config configuration;
 
     /**
      * a ticket could be also related to a an account.
      */
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "accountRelated")
     @JsonIgnore
-    private Set<NkTicket> reports = new HashSet<>();
+    private Set<Ticket> reports = new HashSet<>();
 
     /**
      * must be is issued by a user account.
      */
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "issuedby")
     @JsonIgnore
-    private Set<NkTicket> owners = new HashSet<>();
+    private Set<Ticket> owners = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "account")
     @JsonIgnore
-    private Set<NkComment> comments = new HashSet<>();
+    private Set<Comment> comments = new HashSet<>();
 
     /**
      * any user can subscribe to any other user's account which my eventually have
@@ -116,22 +116,22 @@ public class NkAccount implements Serializable {
      */
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "follower")
     @JsonIgnore
-    private Set<NkMembership> memberships = new HashSet<>();
+    private Set<Membership> memberships = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "following")
     @JsonIgnore
-    private Set<NkMembership> subscriptions = new HashSet<>();
+    private Set<Membership> subscriptions = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "account")
     @JsonIgnore
-    private Set<NkPost> posts = new HashSet<>();
+    private Set<Post> posts = new HashSet<>();
 
     /**
      * a review is done by a user
      */
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "account")
     @JsonIgnore
-    private Set<NkReview> reviews = new HashSet<>();
+    private Set<Review> reviews = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -213,67 +213,67 @@ public class NkAccount implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-    public NkConfig getConfiguration() {
+    public Config getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(NkConfig configuration) {
+    public void setConfiguration(Config configuration) {
         this.configuration = configuration;
     }
 
-    public Set<NkTicket> getReports() {
+    public Set<Ticket> getReports() {
         return reports;
     }
 
-    public void setReports(Set<NkTicket> reports) {
+    public void setReports(Set<Ticket> reports) {
         this.reports = reports;
     }
 
-    public Set<NkTicket> getOwners() {
+    public Set<Ticket> getOwners() {
         return owners;
     }
 
-    public void setOwners(Set<NkTicket> owners) {
+    public void setOwners(Set<Ticket> owners) {
         this.owners = owners;
     }
 
-    public Set<NkComment> getComments() {
+    public Set<Comment> getComments() {
         return comments;
     }
 
-    public void setComments(Set<NkComment> comments) {
+    public void setComments(Set<Comment> comments) {
         this.comments = comments;
     }
 
-    public Set<NkMembership> getMemberships() {
+    public Set<Membership> getMemberships() {
         return memberships;
     }
 
-    public void setMemberships(Set<NkMembership> memberships) {
+    public void setMemberships(Set<Membership> memberships) {
         this.memberships = memberships;
     }
 
-    public Set<NkMembership> getSubscriptions() {
+    public Set<Membership> getSubscriptions() {
         return subscriptions;
     }
 
-    public void setSubscriptions(Set<NkMembership> subscriptions) {
+    public void setSubscriptions(Set<Membership> subscriptions) {
         this.subscriptions = subscriptions;
     }
 
-    public Set<NkPost> getPosts() {
+    public Set<Post> getPosts() {
         return posts;
     }
 
-    public void setPosts(Set<NkPost> posts) {
+    public void setPosts(Set<Post> posts) {
         this.posts = posts;
     }
 
-    public Set<NkReview> getReviews() {
+    public Set<Review> getReviews() {
         return reviews;
     }
 
-    public void setReviews(Set<NkReview> reviews) {
+    public void setReviews(Set<Review> reviews) {
         this.reviews = reviews;
     }
 

@@ -3,7 +3,7 @@ package org.ngelmakproject.web.rest;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.ngelmakproject.domain.NkReaction;
+import org.ngelmakproject.domain.Reaction;
 import org.ngelmakproject.service.ReactionService;
 import org.ngelmakproject.web.rest.errors.BadRequestAlertException;
 import org.ngelmakproject.web.rest.util.HeaderUtil;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
 /**
- * REST controller for managing {@link org.ngelmakproject.domain.NkReaction}.
+ * REST controller for managing {@link org.ngelmakproject.domain.Reaction}.
  */
 @RestController
 @RequestMapping("/api/reactions")
@@ -52,7 +52,7 @@ public class ReactionResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<NkReaction> createReaction(@Valid @RequestBody NkReaction reaction)
+    public ResponseEntity<Reaction> createReaction(@Valid @RequestBody Reaction reaction)
             throws URISyntaxException {
         log.debug("REST request to save Reaction : {}", reaction);
         if (reaction.getId() != null) {
@@ -79,8 +79,8 @@ public class ReactionResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("")
-    public ResponseEntity<NkReaction> updateReaction(
-            @Valid @RequestBody NkReaction reaction) throws URISyntaxException {
+    public ResponseEntity<Reaction> updateReaction(
+            @Valid @RequestBody Reaction reaction) throws URISyntaxException {
         log.debug("REST request to update Reaction : {}", reaction);
         if (reaction.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");

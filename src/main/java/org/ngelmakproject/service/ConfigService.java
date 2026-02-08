@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-import org.ngelmakproject.domain.NkConfig;
+import org.ngelmakproject.domain.Config;
 import org.ngelmakproject.repository.ConfigRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class ConfigService {
      * @param config the entity to save.
      * @return the persisted entity.
      */
-    public NkConfig save(NkConfig config) {
+    public Config save(Config config) {
         log.debug("Request to save Config : {}", config);
         return configRepository.save(config);
     }
@@ -45,7 +45,7 @@ public class ConfigService {
      * @param config the entity to save.
      * @return the persisted entity.
      */
-    public NkConfig update(NkConfig config) {
+    public Config update(Config config) {
         log.debug("Request to update Config : {}", config);
         return configRepository.save(config);
     }
@@ -56,7 +56,7 @@ public class ConfigService {
      * @param config the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<NkConfig> partialUpdate(NkConfig config) {
+    public Optional<Config> partialUpdate(Config config) {
         log.debug("Request to partially update Config : {}", config);
 
         return configRepository
@@ -84,20 +84,20 @@ public class ConfigService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<NkConfig> findAll(Pageable pageable) {
+    public Page<Config> findAll(Pageable pageable) {
         log.debug("Request to get all Configs");
         return configRepository.findAll(pageable);
     }
 
     /**
-     *  Get all the configs where NkAccount is {@code null}.
+     *  Get all the configs where Account is {@code null}.
      *  @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public List<NkConfig> findAllWhereNkAccountIsNull() {
-        log.debug("Request to get all configs where NkAccount is null");
+    public List<Config> findAllWhereAccountIsNull() {
+        log.debug("Request to get all configs where Account is null");
         return StreamSupport.stream(configRepository.findAll().spliterator(), false)
-            .filter(config -> config.getNkAccount() == null)
+            .filter(config -> config.getAccount() == null)
             .toList();
     }
 
@@ -108,7 +108,7 @@ public class ConfigService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<NkConfig> findOne(Long id) {
+    public Optional<Config> findOne(Long id) {
         log.debug("Request to get Config : {}", id);
         return configRepository.findById(id);
     }

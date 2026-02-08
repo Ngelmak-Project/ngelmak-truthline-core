@@ -3,7 +3,7 @@ package org.ngelmakproject.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkFile;
+import org.ngelmakproject.domain.File;
 import org.ngelmakproject.repository.projection.FileProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,16 +12,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for the NkFile entity.
+ * Spring Data JPA repository for the File entity.
  */
 @SuppressWarnings("unused")
 @Repository
-public interface FileRepository extends JpaRepository<NkFile, Long> {
-  Optional<NkFile> findByHash(String hash);
+public interface FileRepository extends JpaRepository<File, Long> {
+  Optional<File> findByHash(String hash);
 
-  List<NkFile> findByHashIn(Iterable<String> hashes);
+  List<File> findByHashIn(Iterable<String> hashes);
 
-  List<NkFile> findByUrlIn(Iterable<String> urls);
+  List<File> findByUrlIn(Iterable<String> urls);
 
   /**
    * Increments usageCount for all files in the given list.
@@ -35,7 +35,7 @@ public interface FileRepository extends JpaRepository<NkFile, Long> {
    */
   @Modifying
   @Query("""
-      UPDATE NkFile f
+      UPDATE File f
       SET f.usageCount = f.usageCount + 1
       WHERE f.id IN :ids
       """)
@@ -53,7 +53,7 @@ public interface FileRepository extends JpaRepository<NkFile, Long> {
    */
   @Modifying
   @Query("""
-      UPDATE NkFile f
+      UPDATE File f
       SET f.usageCount = GREATEST(0, f.usageCount - 1)
       WHERE f.id IN :ids
       """)
@@ -73,7 +73,7 @@ public interface FileRepository extends JpaRepository<NkFile, Long> {
    */
   @Modifying
   @Query("""
-      UPDATE NkFile f SET f.usageCount = GREATEST(0, f.usageCount + :count)
+      UPDATE File f SET f.usageCount = GREATEST(0, f.usageCount + :count)
       WHERE f.id = :fileId
       """)
   Integer updateUsageCount(@Param("fileId") Long fileId, @Param("count") Integer count);
@@ -89,7 +89,7 @@ public interface FileRepository extends JpaRepository<NkFile, Long> {
    * @return the number of deleted rows.
    */
   @Modifying
-  @Query("DELETE NkFile f WHERE f.usageCount = 0")
+  @Query("DELETE File f WHERE f.usageCount = 0")
   Integer deleteUnusedFiles();
 
   /**
@@ -99,10 +99,10 @@ public interface FileRepository extends JpaRepository<NkFile, Long> {
    * @return the number of deleted rows.
    */
   @Modifying
-  @Query("DELETE NkFile f WHERE f.id IN :ids")
+  @Query("DELETE File f WHERE f.id IN :ids")
   Integer deleteUnusedFiles(@Param("ids") List<Long> ids);
 
-  @Query("SELECT f FROM NkFile f WHERE f.usageCount = 0")
+  @Query("SELECT f FROM File f WHERE f.usageCount = 0")
   List<FileProjection> findUnusedFiles();
 
 }

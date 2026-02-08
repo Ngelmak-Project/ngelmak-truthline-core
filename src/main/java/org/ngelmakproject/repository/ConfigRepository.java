@@ -1,6 +1,6 @@
 package org.ngelmakproject.repository;
 
-import org.ngelmakproject.domain.NkConfig;
+import org.ngelmakproject.domain.Config;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,4 +9,4 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface ConfigRepository extends JpaRepository<NkConfig, Long> {}
+public interface ConfigRepository extends JpaRepository<Config, Long> {}

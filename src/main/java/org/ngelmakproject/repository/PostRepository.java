@@ -2,8 +2,8 @@ package org.ngelmakproject.repository;
 
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkAccount;
-import org.ngelmakproject.domain.NkPost;
+import org.ngelmakproject.domain.Account;
+import org.ngelmakproject.domain.Post;
 import org.ngelmakproject.domain.enumeration.Status;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -15,11 +15,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for the NkPost entity.
+ * Spring Data JPA repository for the Post entity.
  */
 @SuppressWarnings("unused")
 @Repository
-public interface PostRepository extends JpaRepository<NkPost, Long> {
+public interface PostRepository extends JpaRepository<Post, Long> {
     // @Query(value = "SELECT " +
     // " full_search.*, " +
     // " p.id AS post_reference_id, " +
@@ -48,32 +48,32 @@ public interface PostRepository extends JpaRepository<NkPost, Long> {
     // @Param("offset") Long offset);
     // JOIN FETCH post.comments comments JOIN FETCH post.attachments attachments
 
-    // @Query("SELECT post FROM NkPost post " +
+    // @Query("SELECT post FROM Post post " +
     // "LEFT JOIN FETCH post.account account " +
     // "LEFT JOIN FETCH post.postReply postReply " +
     // "LEFT JOIN FETCH post.comments comments " +
     // "LEFT JOIN FETCH post.attachments attachments " +
     // "WHERE post.id = ?1")
-    Optional<NkPost> findById(Long id);
+    Optional<Post> findById(Long id);
 
     @Query("""
-            SELECT p FROM NkPost p
+            SELECT p FROM Post p
             LEFT JOIN FETCH p.postReply
             LEFT JOIN FETCH p.account
             LEFT JOIN FETCH p.files
             WHERE p.account.id = :accountId
             """)
-    Slice<NkPost> findByAccount(@Param("accountId") Long accountId,
+    Slice<Post> findByAccount(@Param("accountId") Long accountId,
             Pageable pageable);
 
     @Query("""
-            SELECT p FROM NkPost p
+            SELECT p FROM Post p
             LEFT JOIN FETCH p.postReply
             LEFT JOIN FETCH p.account
             LEFT JOIN FETCH p.files
             WHERE p.account.id = :accountId AND p.status = :status
             """)
-    Slice<NkPost> findByAccountAndStatus(@Param("accountId") Long accountId, @Param("status") Status status,
+    Slice<Post> findByAccountAndStatus(@Param("accountId") Long accountId, @Param("status") Status status,
             Pageable pageable);
 
     /**
@@ -84,35 +84,35 @@ public interface PostRepository extends JpaRepository<NkPost, Long> {
      * @return
      */
     @EntityGraph(attributePaths = { "account", "files" })
-    Slice<NkPost> findByStatusOrderByAtDesc(Status status, Pageable pageable);
+    Slice<Post> findByStatusOrderByAtDesc(Status status, Pageable pageable);
 
     @Query("""
-            SELECT p FROM NkPost p
+            SELECT p FROM Post p
             LEFT JOIN FETCH p.account
             LEFT JOIN FETCH p.files
             WHERE p.status = 'PUBLISHED'
             """)
-    Slice<NkPost> findAllWithRelations(Pageable pageable);
+    Slice<Post> findAllWithRelations(Pageable pageable);
 
     @Modifying
     @Query("""
-            UPDATE NkPost p
-            SET p.commentCount = (SELECT COUNT(c.id) FROM NkComment c
+            UPDATE Post p
+            SET p.commentCount = (SELECT COUNT(c.id) FROM Comment c
             WHERE c.post.id = p.id)
             """)
     void updateAllPostCommentCounts();
 
     @Modifying
     @Query("""
-            UPDATE NkPost p
-            SET p.commentCount=(SELECT COUNT(c.id) FROM NkComment c
+            UPDATE Post p
+            SET p.commentCount=(SELECT COUNT(c.id) FROM Comment c
             WHERE c.post.id = :postId)
             """)
     void updatePostCommentCount(@Param("postId") Long postId);
 
     @Modifying
     @Query("""
-            UPDATE NkPost p
+            UPDATE Post p
             SET p.commentCount = GREATEST(0, p.commentCount + :countChange)
             WHERE p.id = :postId
             """)

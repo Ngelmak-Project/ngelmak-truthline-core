@@ -2,7 +2,7 @@ package org.ngelmakproject.service;
 
 import java.util.Optional;
 
-import org.ngelmakproject.domain.NkReview;
+import org.ngelmakproject.domain.Review;
 import org.ngelmakproject.repository.ReviewRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service Implementation for managing {@link org.ngelmakproject.domain.NkReview}.
+ * Service Implementation for managing {@link org.ngelmakproject.domain.Review}.
  */
 @Service
 @Transactional
@@ -32,8 +32,8 @@ public class ReviewService {
      * @param review the entity to save.
      * @return the persisted entity.
      */
-    public NkReview save(NkReview review) {
-        log.debug("Request to save NkReview : {}", review);
+    public Review save(Review review) {
+        log.debug("Request to save Review : {}", review);
         return reviewRepository.save(review);
     }
 
@@ -43,8 +43,8 @@ public class ReviewService {
      * @param review the entity to save.
      * @return the persisted entity.
      */
-    public NkReview update(NkReview review) {
-        log.debug("Request to update NkReview : {}", review);
+    public Review update(Review review) {
+        log.debug("Request to update Review : {}", review);
         return reviewRepository.save(review);
     }
 
@@ -54,8 +54,8 @@ public class ReviewService {
      * @param review the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<NkReview> partialUpdate(NkReview review) {
-        log.debug("Request to partially update NkReview : {}", review);
+    public Optional<Review> partialUpdate(Review review) {
+        log.debug("Request to partially update Review : {}", review);
 
         return reviewRepository
             .findById(review.getId())
@@ -82,7 +82,7 @@ public class ReviewService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<NkReview> findAll(Pageable pageable) {
+    public Page<Review> findAll(Pageable pageable) {
         log.debug("Request to get all Reviews");
         return reviewRepository.findAll(pageable);
     }
@@ -94,8 +94,8 @@ public class ReviewService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<NkReview> findOne(Long id) {
-        log.debug("Request to get NkReview : {}", id);
+    public Optional<Review> findOne(Long id) {
+        log.debug("Request to get Review : {}", id);
         return reviewRepository.findById(id);
     }
 
@@ -105,7 +105,7 @@ public class ReviewService {
      * @param id the id of the entity.
      */
     public void delete(Long id) {
-        log.debug("Request to delete NkReview : {}", id);
+        log.debug("Request to delete Review : {}", id);
         reviewRepository.deleteById(id);
     }
 }

@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "nk_reaction")
-public class NkReaction {
+public class Reaction {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
@@ -22,11 +22,11 @@ public class NkReaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
-    private NkPost post;
+    private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
-    private NkAccount account;
+    private Account account;
 
     @Column(name = "emoji", nullable = false)
     private String emoji;
@@ -39,19 +39,19 @@ public class NkReaction {
         this.id = id;
     }
 
-    public NkPost getPost() {
+    public Post getPost() {
         return post;
     }
 
-    public void setPost(NkPost post) {
+    public void setPost(Post post) {
         this.post = post;
     }
 
-    public NkAccount getAccount() {
+    public Account getAccount() {
         return account;
     }
 
-    public void setAccount(NkAccount account) {
+    public void setAccount(Account account) {
         this.account = account;
     }
 

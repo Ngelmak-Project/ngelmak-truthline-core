@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ngelmakproject.domain.NkReaction;
+import org.ngelmakproject.domain.Reaction;
 
 public record ReactionSummaryDTO(
         Map<String, Integer> counts,
@@ -17,13 +17,13 @@ public record ReactionSummaryDTO(
      * @param reactions     reactions belonging to the same post
      * @param currentUserId the ID of the user viewing the post (nullable)
      */
-    public static ReactionSummaryDTO from(List<NkReaction> reactions, Long currentUserId) {
+    public static ReactionSummaryDTO from(List<Reaction> reactions, Long currentUserId) {
 
         Map<String, Integer> counts = new HashMap<>();
         String userEmoji = null;
         Long userReactionId = null;
 
-        for (NkReaction reaction : reactions) {
+        for (Reaction reaction : reactions) {
             // Count emoji occurrences
             counts.merge(reaction.getEmoji(), 1, Integer::sum);
 

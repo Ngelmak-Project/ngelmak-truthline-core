@@ -16,7 +16,7 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "nk_donation")
-public class NkDonation implements Serializable {
+public class Donation implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -91,7 +91,7 @@ public class NkDonation implements Serializable {
 
     @Override
     public String toString() {
-        return "NkDonation [id=" + id + ", amount=" + amount + ", message=" + message + ", isAnonymous=" + isAnonymous
+        return "Donation [id=" + id + ", amount=" + amount + ", message=" + message + ", isAnonymous=" + isAnonymous
                 + ", name=" + name + ", createdAt=" + createdAt + "]";
     }
 
